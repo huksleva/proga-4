@@ -1,16 +1,48 @@
-# This is a sample Python script.
+def fibonacchi_gen():
+    """Генератор чисел Фибоначи"""
+    a = 0
+    b = 1
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+    while True:
+        yield a
+        res = a + b
+        a = b
+        b = res
+
+g = fibonacchi_gen()
+
+while True:
+    h = next(g)
+    if h > 10:
+        break
+    print(h)
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
 
 
-# Press the green button in the gutter to run the script.
+
+class Fibonacchilst():
+    def f(self):
+        print()
+
+
+# pep8 и pep257 и pep484- документация
+"""
+подсказки при вызове функции
+:param instance
+
+Генератор - создаёт новое значение
+Итератор - получает на вход значение и перебирает его
+"""
+
+
+
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    n = 10
+    Fibonacci = list(range(n))
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+
+
+
+
