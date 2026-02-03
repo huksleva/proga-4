@@ -1,5 +1,5 @@
 import unittest
-from main import Fibonacchilst
+from fib import Fibonacchilst
 
 class Test(unittest.TestCase):
 
