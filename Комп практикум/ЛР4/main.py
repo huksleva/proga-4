@@ -13,7 +13,12 @@ app.secret_key = 'dev_key_123'
 # ОТКЛЮЧАЕМ сортировку ключей по алфавиту
 app.json.sort_keys = False
 
+# Удаляем временные файлы
 
+
+all_files = os.listdir()
+for f in all_files:
+    os.remove(f)
 
 
 
@@ -25,12 +30,6 @@ def login():
 
 @app.route("/")
 def index():
-    # Удаляем временные файлы
-    os.chdir(r"./uploads")
-    all_files = os.listdir()
-    for f in all_files:
-        os.remove(f)
-
     return render_template("index.html")
 
 
@@ -118,7 +117,9 @@ def last_upload():
         return last
     return {"result": "no uploads yet"}, 404
 
-
+@app.route('/test')
+def test():
+    return f"Static folder: {app.static_folder}"
 
 
 
