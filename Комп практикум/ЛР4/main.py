@@ -1,10 +1,14 @@
-from flask import Flask, request, render_template, send_file, send_from_directory
-import os, uuid, io
+from flask import Flask, request, render_template, send_from_directory
+import os, uuid
 from PIL import Image
+from flask import session
 
 app = Flask(__name__)
-UPLOAD_FOLDER = 'uploads'
+basedir = os.path.abspath(os.path.dirname(__file__))
+UPLOAD_FOLDER = os.path.join(basedir, 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.secret_key = 'dev_key_123'
+
 
 # ОТКЛЮЧАЕМ сортировку ключей по алфавиту
 app.json.sort_keys = False
@@ -73,37 +77,6 @@ def is_allowed_image(file):
     except (UnidentifiedImageError, IOError, OSError):
         return False
 
-@app.route("/showPicture_primer", methods=['POST'])
-def show_picture_primer():
-
-
-    file = request.files['image']
-
-    # Проверяем изображение это или нет
-    if not is_allowed_image(file):
-        return {"result": "invalid filetype"}, 400
-
-    # Обрабатываем изображение
-    image = Image.open(file)
-
-    # Сохраняем в память
-    # Создаём буфер в памяти (в RAM!)
-    buffered = io.BytesIO()
-
-    # Сохраняем изображение в этот буфер
-    image.save(buffered, format="PNG")
-
-    # Возвращаем указатель в начало
-    buffered.seek(0)
-
-    # Автоматически получаем MIME-тип
-    mimetype = Image.MIME.get(image.format, 'application/octet-stream')
-
-    # Отправляем буфер клиенту
-    return send_file(buffered, mimetype=mimetype, as_attachment=False, download_name='processed.png')
-
-
-
 @app.route('/uploads/<filename>')
 def get_image(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
@@ -117,6 +90,9 @@ def show_picture():
     if not is_allowed_image(file):
         return {"result": "invalid filetype"}, 400
 
+    # Сбрасываем позицию потока в начало
+    file.stream.seek(0)
+
     # Сначала сохраняем файл на диск
     original_filename = file.filename.lower()
     ext = original_filename.split('.')[-1] if '.' in original_filename else 'png'
@@ -124,10 +100,23 @@ def show_picture():
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     file.save(filepath)  # Сохраняем
 
+    # Сохраняем информацию в сессию
+    session['last_upload'] = {
+        'image_url': f"/uploads/{filename}",
+        'filename': filename,
+        'ext': ext
+    }
+
     return {"image_url": f"/uploads/{filename}"}
 
 
-
+# Возвращает данные о последнем загруженном файле
+@app.route('/lastUpload')
+def last_upload():
+    last = session.get('last_upload')
+    if last:
+        return last
+    return {"result": "no uploads yet"}, 404
 
 
 

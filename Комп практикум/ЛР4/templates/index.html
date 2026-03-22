@@ -13,5 +13,14 @@
             <input type="file" name="image">
             <button name="btn">Вывести изображение на экран (усложнённое задание)</button>
         </form>
+
+        <!-- Сюда покажем изображение -->
+        <div id="result"></div>
+
+        <!-- Сюда выведем данные о последнем добавленном изображении -->
+        <div id="lastUploadResult"></div>
+
+        <!-- Минимальный JavaScript. Подключение специально под Flask -->
+        <script src="{{ url_for('static', filename='index.js') }}"></script>
     </body>
 </HTML>
