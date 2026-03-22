@@ -1,6 +1,10 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python,pycharm,obsidian
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,pycharm,obsidian
 
+### My Files ###
+./Комп практикум/ЛР4/uploads/
+
+
 ### Obsidian ###
 # config dir
 .obsidian/
