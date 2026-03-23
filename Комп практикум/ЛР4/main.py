@@ -1,7 +1,8 @@
 from flask import Flask, request, render_template, send_from_directory
 import os, uuid
 from PIL import Image
-from flask import session
+import json
+
 
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -13,12 +14,30 @@ app.secret_key = 'dev_key_123'
 # ОТКЛЮЧАЕМ сортировку ключей по алфавиту
 app.json.sort_keys = False
 
-# Удаляем временные файлы
+
+STATE_FILE = 'last_upload.json'
+
+# Загрузка состояния при запуске
+def load_state():
+    if os.path.exists(STATE_FILE):
+        try:
+            with open(STATE_FILE, 'r') as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
+            return {}
+    return {}
+
+# Сохранение состояния
+def save_state(data):
+    with open(STATE_FILE, 'w') as f:
+        json.dump(data, f)
+
+# Загружаем состояние при старте
+app_state = load_state()
 
 
-all_files = os.listdir()
-for f in all_files:
-    os.remove(f)
+
+
 
 
 
@@ -99,12 +118,14 @@ def show_picture():
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     file.save(filepath)  # Сохраняем
 
-    # Сохраняем информацию в сессию
-    session['last_upload'] = {
+    # Сохраняем в файл
+    global app_state
+    app_state = {
         'image_url': f"/uploads/{filename}",
         'filename': filename,
         'ext': ext
     }
+    save_state(app_state)
 
     return {"image_url": f"/uploads/{filename}"}
 
@@ -112,14 +133,24 @@ def show_picture():
 # Возвращает данные о последнем загруженном файле
 @app.route('/lastUpload')
 def last_upload():
-    last = session.get('last_upload')
-    if last:
-        return last
+    global app_state
+    if app_state:
+        return app_state
     return {"result": "no uploads yet"}, 404
 
-@app.route('/test')
-def test():
-    return f"Static folder: {app.static_folder}"
+
+
+# Маршрут для очистки папки uploads
+@app.route('/clearUploads', methods=['POST'])
+def clear_uploads():
+    try:
+        for filename in os.listdir(UPLOAD_FOLDER):
+            file_path = os.path.join(UPLOAD_FOLDER, filename)
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
+        return {"result": "uploads cleared"}
+    except Exception as e:
+        return {"error": str(e)}, 500
 
 
 

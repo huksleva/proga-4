@@ -2,16 +2,24 @@
     <head>
         <title>1153307</title>
         <meta charset="utf-8">
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     </head>
     <body>
-        <a href="/login">login</a><br></br>
-        <form name="Form1" action='/size2json' method='POST' enctype="multipart/form-data">
-            <input type="file" name="image" accept=".png">
-            <button name="btn">Отправить изображение (основное задание)</button>
+        <a href="/login">login</a>
+
+        <form name="Form1" action='/size2json' method='POST' enctype="multipart/form-data" @submit.prevent="uploadSize">
+            <input type="file" name="image" accept=".png" @change="selectFile1" required>
+            <button type="submit" name="btn" :disabled="loading" class="btn-primary">Отправить изображение (основное задание)</button>
         </form>
-        <form name="Form2" action="/showPicture" method="POST" enctype="multipart/form-data">
-            <input type="file" name="image">
-            <button name="btn">Вывести изображение на экран (усложнённое задание)</button>
+
+        <form name="Form2" action="/showPicture" method="POST" enctype="multipart/form-data" @submit.prevent="uploadPicture">
+            <input type="file" name="image" @change="selectFile2" accept="image/*" required>
+            <button type="submit" name="btn" :disabled="loading" class="btn-primary">Вывести изображение на экран (усложнённое задание)</button>
+        </form>
+
+        <form name="Form3" action="/clearUploads" method="POST" enctype="multipart/form-data">
+            <button name="btn" @click="clearUploads" class="btn-danger">Очистить папку uploads (папка с картинками)</button>
         </form>
 
         <!-- Сюда покажем изображение -->
@@ -22,5 +30,7 @@
 
         <!-- Минимальный JavaScript. Подключение специально под Flask -->
         <script src="{{ url_for('static', filename='index.js') }}"></script>
+
+        <script src="{{ url_for('static', filename='app.js') }}"></script>
     </body>
 </HTML>
