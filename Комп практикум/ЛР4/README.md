@@ -252,9 +252,9 @@ GET /lastUpload
 
 ### Скриншоты работы сайта
 
-![Pasted image 20260323151758.png]
-![Pasted image 20260323151824.png]
-![Pasted image 20260323151846.png]
+![alt text](Pasted image 20260323151758.png)
+![alt text](Pasted image 20260323151824.png)
+![alt text](Pasted image 20260323151846.png)
 
 
 
