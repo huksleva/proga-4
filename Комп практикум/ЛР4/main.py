@@ -139,7 +139,6 @@ def last_upload():
     return {"result": "no uploads yet"}, 404
 
 
-
 # Маршрут для очистки папки uploads
 @app.route('/clearUploads', methods=['POST'])
 def clear_uploads():
@@ -151,7 +150,7 @@ def clear_uploads():
         return {"result": "uploads cleared"}
     except Exception as e:
         return {"error": str(e)}, 500
-
+#==================================================================================
 
 
 

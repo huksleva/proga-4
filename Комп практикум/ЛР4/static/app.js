@@ -12,23 +12,30 @@ createApp({
         }
     },
 
-    // Загружается при открытии страницы
+    computed: {
+        file1Name() {
+            console.log('file1Name called:', this.file1 ? this.file1.name : 'Файл не выбран');
+            return this.file1 ? this.file1.name : 'Файл не выбран';
+        },
+        file2Name() {
+            console.log('file2Name called:', this.file2 ? this.file2.name : 'Файл не выбран');
+            return this.file2 ? this.file2.name : 'Файл не выбран';
+        }
+    },
+
     async mounted() {
         await this.loadLastUpload();
     },
 
     methods: {
-        // Выбор файла для формы 1
         selectFile1(event) {
             this.file1 = event.target.files[0];
         },
 
-        // Выбор файла для формы 2
         selectFile2(event) {
             this.file2 = event.target.files[0];
         },
 
-        // Отправка на /size2json
         async uploadSize() {
             if (!this.file1) return;
 
@@ -54,7 +61,7 @@ createApp({
                 } else {
                     this.sizeResult = {
                         error: true,
-                        message: ${data.result}`
+                        message: `${data.result}`
                     };
                 }
             } catch (error) {
@@ -67,7 +74,6 @@ createApp({
             this.loading = false;
         },
 
-        // Отправка на /showPicture
         async uploadPicture() {
             if (!this.file2) return;
 
@@ -87,8 +93,6 @@ createApp({
 
                 if (response.ok) {
                     this.pictureResult = data;
-
-                    // Сохраняем в localStorage
                     localStorage.setItem('lastUpload', JSON.stringify(data));
                 } else {
                     alert(`Ошибка: ${data.result}`);
@@ -100,16 +104,13 @@ createApp({
             this.loading = false;
         },
 
-        // Загрузка последнего файла
         async loadLastUpload() {
-            // Сначала пробуем из localStorage
             const local = localStorage.getItem('lastUpload');
             if (local) {
                 this.lastUpload = JSON.parse(local);
                 return;
             }
 
-            // Если нет, запрашиваем у сервера
             try {
                 const response = await fetch('/lastUpload');
                 if (response.ok) {
@@ -120,7 +121,6 @@ createApp({
             }
         },
 
-        // Очистка файлов
         async clearUploads() {
             if (!confirm('Удалить все загруженные файлы?')) return;
 
