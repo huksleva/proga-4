@@ -11,15 +11,19 @@ def main_page():
     return FileResponse("templates/index.html")
 
 
-@app.get("/")
+@app.post("/createObject")
+def create_object():
+    pass
 
 
 
+@app.delete("/deleteObject")
+def delete_object():
+    pass
 
-@app.post("/a")
-def request():
-
-    return {"123": 123}
+@app.delete("/deleteAllObject")
+def delete_all_object():
+    pass
 
 
 

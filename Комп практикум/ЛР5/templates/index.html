@@ -30,13 +30,17 @@
         <div class="container-fluid d-flex align-items-center justify-content-center text-white">
             <div class="row w-100 justify-content-center g-3 mt-4">
                 <div class="col-auto">
-                    <button class="btn btn-primary">Добавить новый элемент (в конец очереди)</button>
+                    <form action="/createObject" method="post">
+                        <button type="submit" class="btn btn-primary">Добавить новый элемент (в конец очереди)</button>
+                    </form>
+
+
                 </div>
                 <div class="col-auto">
-                    <button class="btn btn-danger">Удалить элемент (с начала очереди)</button>
+                    <button type="button" class="btn btn-danger">Удалить элемент (с начала очереди)</button>
                 </div>
                 <div class="col-auto">
-                    <button class="btn btn-danger">Удалить все элементы</button>
+                    <button type="button" class="btn btn-danger">Удалить все элементы</button>
                 </div>
             </div>
         </div>
@@ -44,11 +48,7 @@
         <!-- Контейнер с элементами -->
         <div class="container-fluid d-flex align-items-center justify-content-center text-white">
             <div class="row w-100 justify-content-center" style="background-color: rgb(0, 0, 0); margin-top: 100px;">
-                <!-- Случайное фото (каждый раз новое) -->
-                <img src="https://picsum.photos/400/300" alt="Random">
 
-                <!-- Случайный цветной прямоугольник -->
-                <img src="https://via.placeholder.com/400x300/FF5733/FFFFFF?text=Hello" alt="Placeholder">
             </div>
         </div>
     </body>
