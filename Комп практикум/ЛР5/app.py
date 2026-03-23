@@ -8,13 +8,11 @@ app = FastAPI()
 
 @app.get("/", response_class=HTMLResponse)
 def main_page():
-    return ("<HTML><body>"
-        "<p>Hello world</p>"
-        "<form>"
-        '<input type="text">'
-        '<input type="submit">'
-        "</form>"
-        "</body></HTML>")
+    return FileResponse("templates/index.html")
+
+
+@app.get("/")
+
 
 
 
@@ -30,4 +28,4 @@ def request():
 
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", host="127.0.0.1", port=5000, reload=True)
+    uvicorn.run("app:app", host="127.0.0.1", port=5001, reload=True)
