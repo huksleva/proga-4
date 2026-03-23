@@ -3,8 +3,10 @@ const { createApp } = Vue;
 createApp({
     data() {
         return {
-            file1: null,
+            file1: null,           // File object для отправки
+            file1NameValue: 'Файл не выбран',  // Строка для отображения
             file2: null,
+            file2NameValue: 'Файл не выбран',  // Строка для отображения
             sizeResult: null,
             pictureResult: null,
             lastUpload: null,
@@ -12,16 +14,6 @@ createApp({
         }
     },
 
-    computed: {
-        file1Name() {
-            console.log('file1Name called:', this.file1 ? this.file1.name : 'Файл не выбран');
-            return this.file1 ? this.file1.name : 'Файл не выбран';
-        },
-        file2Name() {
-            console.log('file2Name called:', this.file2 ? this.file2.name : 'Файл не выбран');
-            return this.file2 ? this.file2.name : 'Файл не выбран';
-        }
-    },
 
     async mounted() {
         await this.loadLastUpload();
@@ -29,49 +21,38 @@ createApp({
 
     methods: {
         selectFile1(event) {
-            this.file1 = event.target.files[0];
+            if (event.target.files.length > 0) {
+                this.file1NameValue = event.target.files[0].name;
+                this.file1 = event.target.files[0];
+            }
         },
 
         selectFile2(event) {
-            this.file2 = event.target.files[0];
+            if (event.target.files.length > 0) {
+                const file = event.target.files[0];
+
+                this.file2NameValue = file.name;
+                this.file2 = file;
+            }
         },
 
         async uploadSize() {
             if (!this.file1) return;
 
-            this.loading = true;
-            this.sizeResult = null;
+            const formData = new FormData();
+            formData.append('image', this.file1);
 
-            try {
-                const formData = new FormData();
-                formData.append('image', this.file1);
+            const response = await fetch('/size2json', {method: 'POST', body: formData});
+            const data = await response.json();
 
-                const response = await fetch('/size2json', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    this.sizeResult = {
-                        error: false,
-                        message: `Ширина: ${data.width}, Высота: ${data.height}`
-                    };
-                } else {
-                    this.sizeResult = {
-                        error: true,
-                        message: `${data.result}`
-                    };
-                }
-            } catch (error) {
-                this.sizeResult = {
-                    error: true,
-                    message: `Ошибка: ${error.message}`
-                };
+            if (response.ok) {
+                // Создаём Blob с JSON и открываем в новой вкладке
+                const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+            } else {
+                alert(data.result);
             }
-
-            this.loading = false;
         },
 
         async uploadPicture() {

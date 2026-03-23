@@ -12,12 +12,13 @@
 
         <a href="/login">login</a>
 
+
         <!-- Форма 1 -->
         <form name="Form1" @submit.prevent="uploadSize">
             <div class="file-upload">
                 <input type="file" id="file1" name="image" accept=".png" @change="selectFile1" required style="display: none;">
                 <label for="file1" class="file-label">
-                    <span class="file-text">{{ file1Name }}</span>
+                    <span class="file-text" v-text="file1NameValue"></span>
                     <span class="file-button">📁 Обзор</span>
                 </label>
             </div>
@@ -31,7 +32,7 @@
             <div class="file-upload">
                 <input type="file" id="file2" name="image" @change="selectFile2" accept="image/*" required style="display: none;">
                 <label for="file2" class="file-label">
-                    <span class="file-text">{{ file2Name }}</span>
+                    <span class="file-text" v-text="file2NameValue"></span>
                     <span class="file-button">📁 Обзор</span>
                 </label>
             </div>
@@ -47,19 +48,15 @@
 
         <!-- Результаты (обёртка raw для Jinja2) -->
         {% raw %}
-        <div v-if="sizeResult" :class="['result', sizeResult.error ? 'error' : 'success']">
-            {{ sizeResult.message }}
-        </div>
-
         <div v-if="pictureResult" class="result success">
             <img :src="pictureResult.image_url" alt="Uploaded">
-            <p>{{ pictureResult.filename }}</p>
+            <p><span v-text="pictureResult.filename"></span></p>
         </div>
 
         <div v-if="lastUpload" class="result">
             <h3>Последний файл:</h3>
             <img :src="lastUpload.image_url" alt="Last">
-            <p>{{ lastUpload.filename }}</p>
+            <p><span v-text="lastUpload.filename"></span></p>
         </div>
 
         <div v-if="loading" class="result">Загрузка...</div>
