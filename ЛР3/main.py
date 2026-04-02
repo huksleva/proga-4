@@ -1,20 +1,16 @@
 from fastapi import FastAPI
-from sqlalchemy.orm import sessionmaker
-from database import engine, create_db_and_tables
-from contextlib import asynccontextmanager
+from database import create_db_and_tables, add_all_currency_valute
+# from sqlalchemy.orm import sessionmaker
+# from contextlib import asynccontextmanager
 
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    await create_db_and_tables()
-    yield
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 
-
-
+@app.get("/")
+def mainPage():
+    pass
 
 
 
@@ -36,6 +32,16 @@ app = FastAPI(lifespan=lifespan)
 
 
 
+
+
+
+
+if __name__ == "__main__":
+    # Создание всех таблиц
+    create_db_and_tables()
+
+    # Заполняем таблицу с валютами
+    add_all_currency_valute()
 
 
 
