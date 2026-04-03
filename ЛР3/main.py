@@ -1,7 +1,11 @@
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 import os
-from database import create_db_and_tables, add_all_currency_valute, drop_db_and_tables
+from database import (
+    create_db_and_tables,
+    add_all_currency_valute,
+    drop_db_and_tables,
+    add_subscription_valute)
 
 
 app = FastAPI()

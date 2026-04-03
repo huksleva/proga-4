@@ -37,7 +37,6 @@ def get_currency_valute():
     root = etree.fromstring(response.content)
     return root
 
-
 # Заполняем таблицу с валютами
 def add_all_currency_valute():
     valute = get_currency_valute().xpath("//Valute")
@@ -68,4 +67,8 @@ def add_all_currency_valute():
     except Exception as e:
         print(f"Ошибка: {e}")
         Session().rollback()
+
+# Добавляем подписку пользователя на валюты
+def add_subscription_valute():
+    valute = get_currency_valute()
 
