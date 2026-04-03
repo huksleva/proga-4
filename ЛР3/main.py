@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from database import create_db_and_tables, add_all_currency_valute
+from database import create_db_and_tables, add_all_currency_valute, drop_db_and_tables
 # from sqlalchemy.orm import sessionmaker
 # from contextlib import asynccontextmanager
 
@@ -37,6 +37,10 @@ def mainPage():
 
 
 if __name__ == "__main__":
+
+    # Удаляем все таблицы
+    drop_db_and_tables()
+
     # Создание всех таблиц
     create_db_and_tables()
 

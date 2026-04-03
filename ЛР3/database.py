@@ -22,10 +22,18 @@ def create_db_and_tables() -> None:
         print(f"Ошибка: {e}")
 
 
+# Удаление всех таблиц
+def drop_db_and_tables() -> None:
+    try:
+        Base.metadata.drop_all(engine)
+    except Exception as e:
+        print(f"Ошибка: {e}")
+
 # Получаем курсы валют в формате xml от ЦБ РФ
 def get_currency_valute():
-    url = "http://www.cbr.ru/scripts/XML_daily.asp"
+    url = "https://www.cbr.ru/scripts/XML_daily.asp"
     response = requests.get(url)
+    # print(response.text)
     root = etree.fromstring(response.content)
     return root
 
@@ -35,65 +43,31 @@ def add_all_currency_valute():
     root = get_currency_valute()
     try:
 
-
         # Работает с неймспейсами: ищет элементы по локальному имени
         for el in root.xpath("//Valute"):
-            name_el = el.find("Name")
-            id_el = el.find("ID")
-            code_el = el.find("CharCode")
+
+            # Получаем нужные нам данные из XML
+            name_el = el.find("Name").text
+            id_value = el.get("ID")
+            code_el = el.find("CharCode").text
+            print(name_el, id_value, code_el)
 
 
-
-            # Пропускаем, если нет обязательных полей
-            if any(x is None or x.text is None for x in [name_el, id_el, code_el]):
-                    continue
 
             # Формируем ответ
             record = Currency(
-                id=id_el.text,
-                code=code_el.text,
-                name=name_el.text
+                id=id_value,
+                code=code_el,
+                name=name_el
             )
 
+            # Добавляем новую запись в БД
             Session().add(record)
-            print(record)
 
+        # Логирование
         Session().commit()
 
     except Exception as e:
         print(f"Ошибка: {e}")
         Session().rollback()
 
-add_all_currency_valute()
-
-
-def debug_xpath(root, xpath_expr, description=""):
-    """Помогает понять, почему XPath не работает"""
-    print(f"\n🔍 Проверка: {description or xpath_expr}")
-
-    # 1. Проверяем синтаксис
-    try:
-        result = root.xpath(xpath_expr)
-    except etree.XPathEvalError as e:
-        print(f"  ❌ Синтаксическая ошибка: {e}")
-        return False
-
-    # 2. Проверяем результат
-    if not result:
-        print(f"  ⚠️ Ничего не найдено (возможно, проблема с неймспейсом)")
-        # Попробуем без неймспейса
-        alt = xpath_expr.replace("ns:", "").replace("{http://web.cbr.ru/}", "")
-        if alt != xpath_expr:
-            alt_result = root.xpath(alt)
-            if alt_result:
-                print(f"  ✓ Нашлось без неймспейса: {len(alt_result)} элементов")
-        return False
-
-    print(f"  ✓ Найдено: {len(result)} элементов")
-    return True
-
-
-# Использование:
-debug_xpath(root, "//Valute", "Поиск валют")
-debug_xpath(root, "//ns:Valute", "Поиск с неймспейсом", )
-debug_xpath(root, "//*[local-name()='Valute']", "Поиск по local-name()")
