@@ -7,7 +7,7 @@ from lxml import etree
 
 
 # Создание движка
-engine = create_engine('sqlite:///database.db', echo=True)
+engine = create_engine('sqlite:///db/database.db', echo=True)
 
 # Создание сессии
 Session = sessionmaker(engine)
