@@ -40,32 +40,30 @@ def get_currency_valute():
 
 # Заполняем таблицу с валютами
 def add_all_currency_valute():
-    root = get_currency_valute()
-    try:
+    valute = get_currency_valute().xpath("//Valute")
+    session = Session()
 
+    try:
         # Работает с неймспейсами: ищет элементы по локальному имени
-        for el in root.xpath("//Valute"):
+        for i, el in enumerate(valute):
 
             # Получаем нужные нам данные из XML
             name_el = el.find("Name").text
-            id_value = el.get("ID")
+            # id_value = el.get("ID")
             code_el = el.find("CharCode").text
-            print(name_el, id_value, code_el)
-
-
 
             # Формируем ответ
             record = Currency(
-                id=id_value,
+                id=i,
                 code=code_el,
                 name=name_el
             )
 
             # Добавляем новую запись в БД
-            Session().add(record)
+            session.add(record)
 
         # Логирование
-        Session().commit()
+        session.commit()
 
     except Exception as e:
         print(f"Ошибка: {e}")
