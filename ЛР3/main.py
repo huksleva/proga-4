@@ -1,5 +1,5 @@
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Form, Request
+from fastapi.responses import FileResponse, RedirectResponse
 import os
 from database import (
     create_db_and_tables,
@@ -9,6 +9,10 @@ from database import (
 
 
 app = FastAPI()
+
+
+
+# GET-запросы
 
 # Главная страница
 @app.get("/")
@@ -32,7 +36,12 @@ def subscriptions_page():
 
 
 
+# POST запросы
 
+@app.post("/users")
+def users_page(username: str = Form(...), email: str = Form(...)):
+    print(username, email)
+    return RedirectResponse("/users", status_code=303)
 
 
 
