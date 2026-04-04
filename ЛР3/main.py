@@ -1,15 +1,18 @@
 from fastapi import FastAPI, Form, Request
+from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse, RedirectResponse
 import os
 from database import (
     create_db_and_tables,
     add_all_currency_valute,
     drop_db_and_tables,
-    add_subscription_valute)
+    get_valute)
 
 
 app = FastAPI()
 
+# Шаблонизатор
+templates = Jinja2Templates(directory="static")
 
 
 # GET-запросы
@@ -26,8 +29,16 @@ def users_page():
 
 # Страница с курсами валют
 @app.get("/currencies")
-def currencies_page():
-    return FileResponse("static/currencies.html")
+def currencies_page(request: Request):
+    currencies = get_valute()
+
+    # Отправляем данные в шаблон
+    # request обязателен для TemplateResponse
+    return templates.TemplateResponse(
+        request,
+        "currencies.html",
+        {"currencies": currencies},
+    )
 
 # Страница с курсами валют
 @app.get("/subscriptions")
