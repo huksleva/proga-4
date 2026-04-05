@@ -1,6 +1,6 @@
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
-
+from datetime import datetime
 from models import Base, Currency, UserBase, Subscription
 import requests
 from lxml import etree
@@ -117,7 +117,7 @@ def add_new_user_to_database(user_name, e_mail):
 
 
             # 1. Создаем объект пользователя
-            new_user = UserBase(username=user_name, email=e_mail)
+            new_user = UserBase(username=user_name, email=e_mail, created_at=datetime.now())
 
             # 2. Добавляем в сессию (готовим к отправке)
             session.add(new_user)
@@ -126,5 +126,6 @@ def add_new_user_to_database(user_name, e_mail):
             session.commit()
 
     except Exception as e:
-        print(f"Ошибка при создании: {e}")
-        return "Ошибка сервера"
+        print(f"\nОшибка при создании: {e}")
+        print("Username:", user_name, "\nemail:", e_mail, "\n")
+        return

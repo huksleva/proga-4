@@ -2,7 +2,6 @@ from fastapi import FastAPI, Form, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse, RedirectResponse
 import os
-from pathlib import Path
 from database import (
     create_db_and_tables,
     fill_currency_table,
@@ -67,6 +66,11 @@ def subscriptions_page(request: Request):
         "subscriptions.html",
         {"subscriptions": subscriptions},
     )
+
+# Страница информации о пользователе
+@app.get("/users/{user_id}")
+def users_page(request: Request, user_id: int):
+    pass
 
 
 
