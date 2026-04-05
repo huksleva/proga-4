@@ -99,9 +99,32 @@ def get_subscriptions_from_database():
         subscriptions = session.query(Subscription).all()
         return subscriptions
 
-def add_new_user_to_database(user, email):
+def add_new_user_to_database(user_name, e_mail):
     """Добавляет нового пользователя в базу данных"""
-    with Session() as session:
-        user = UserBase()
-        session.add(user)
-        session.commit()
+
+    try:
+        with Session() as session:
+
+            # Проверяем (email и username должны быть уникальны у каждого пользователя)
+            # существует ли уже такой пользователь
+            check = session.query(UserBase).filter_by(username=user_name).first()
+            if check:
+                raise ValueError("Пользователь с таким именем уже существует")
+
+            check = session.query(UserBase).filter_by(email=e_mail).first()
+            if check:
+                raise ValueError("Пользователь с таким email уже существует")
+
+
+            # 1. Создаем объект пользователя
+            new_user = UserBase(username=user_name, email=e_mail)
+
+            # 2. Добавляем в сессию (готовим к отправке)
+            session.add(new_user)
+
+            # 3. Фиксируем изменения в БД
+            session.commit()
+
+    except Exception as e:
+        print(f"Ошибка при создании: {e}")
+        return "Ошибка сервера"

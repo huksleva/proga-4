@@ -2,13 +2,15 @@ from fastapi import FastAPI, Form, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse, RedirectResponse
 import os
+from pathlib import Path
 from database import (
     create_db_and_tables,
     fill_currency_table,
     drop_db_and_tables,
     get_currencies_from_database,
     get_users_from_database,
-    get_subscriptions_from_database)
+    get_subscriptions_from_database,
+    add_new_user_to_database)
 
 
 app = FastAPI()
@@ -70,13 +72,19 @@ def subscriptions_page(request: Request):
 
 # POST запросы
 
+# Создаёт нового пользователя
 @app.post("/users")
 def users_page(username: str = Form(...), email: str = Form(...)):
-    print(username, email)
+    add_new_user_to_database(username, email)
     return RedirectResponse("/users", status_code=303)
 
 
 
+
+
+# DELETE запросы
+
+# Удаляет нового пользователя
 
 
 # Создать нового пользователя (принимает username и email)
