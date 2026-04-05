@@ -1,8 +1,7 @@
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
-from starlette.templating import Jinja2Templates
 
-from models import Base, Currency, UserBase
+from models import Base, Currency, UserBase, Subscription
 import requests
 from lxml import etree
 
@@ -91,3 +90,18 @@ def get_users_from_database():
         # .all() возвращает список всех объектов Users
         users = session.query(UserBase).all()
         return users
+
+def get_subscriptions_from_database():
+    """Возвращает базу данных подписок пользователей"""
+
+    with Session() as session:
+        # .all() возвращает список всех объектов Users
+        subscriptions = session.query(Subscription).all()
+        return subscriptions
+
+def add_new_user_to_database(user, email):
+    """Добавляет нового пользователя в базу данных"""
+    with Session() as session:
+        user = UserBase()
+        session.add(user)
+        session.commit()

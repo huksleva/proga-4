@@ -7,7 +7,8 @@ from database import (
     fill_currency_table,
     drop_db_and_tables,
     get_currencies_from_database,
-    get_users_from_database)
+    get_users_from_database,
+    get_subscriptions_from_database)
 
 
 app = FastAPI()
@@ -51,10 +52,19 @@ def currencies_page(request: Request):
         {"currencies": currencies},
     )
 
-# Страница с курсами валют
+# Страница с подписками
 @app.get("/subscriptions")
-def subscriptions_page():
-    return FileResponse("static/subscriptions.html")
+def subscriptions_page(request: Request):
+    # Получаем подписки пользователей из нашей базы данных
+    subscriptions = get_subscriptions_from_database()
+
+    # Отправляем данные в шаблон
+    # request обязателен для TemplateResponse
+    return templates.TemplateResponse(
+        request,
+        "subscriptions.html",
+        {"subscriptions": subscriptions},
+    )
 
 
 
