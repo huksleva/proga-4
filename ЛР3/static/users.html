@@ -15,7 +15,7 @@
     </div>
 
     <!-- Контейнер для форм -->
-    <div class="container">
+    <div class="container mb-5">
 
         <!-- Форма для создания нового пользователя или обновления информации о нём -->
         <div class="row justify-content-center">
@@ -34,7 +34,7 @@
 
         <!-- Форма для удаления пользователя по имени-->
         <div class="row justify-content-center">
-            <form method="" action="/users" class="col-auto g-4">
+            <form method="get" action="/users" class="col-auto g-4">
                 <label>
                     Имя
                     <input type="text" class="form-control" required>
@@ -44,22 +44,43 @@
         </div>
     </div>
 
-    <!-- Контейнер для списка пользователей -->
-    <div class="container mt-3">
-
-        <!-- Название таблицы -->
+    <!-- Название таблицы -->
+    <div class="container mt-5">
         <div class="row justify-content-center">
-            <h1 class="col-auto g-5">Список пользователей</h1>
+            <h2 class="col-auto">Список пользователей</h2>
         </div>
-
-        <!-- Таблица -->
-        <div class="row justify-content-center" id="users_table">
-
-        </div>
-
-
     </div>
 
+    <!-- Таблица -->
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <table class="table table-striped table-hover w-auto text-center table-dark">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Имя</th>
+                        <th>Email</th>
+                        <th>Время создания</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Цикл по всем пользователям -->
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.created_at }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center">Таблица пуста</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 
 </body>
 </html>

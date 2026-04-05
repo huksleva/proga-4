@@ -2,7 +2,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from starlette.templating import Jinja2Templates
 
-from models import Base, Currency
+from models import Base, Currency, UserBase
 import requests
 from lxml import etree
 
@@ -20,30 +20,34 @@ Session = sessionmaker(engine)
 
 
 
-# Создание всех таблиц
-def create_db_and_tables() -> None:
+def create_db_and_tables():
+    """Создание всех таблиц"""
+
     try:
         Base.metadata.create_all(engine)
     except Exception as e:
         print(f"Ошибка: {e}")
 
-# Удаление всех таблиц
-def drop_db_and_tables() -> None:
+def drop_db_and_tables():
+    """Удаление всех таблиц"""
+
     try:
         Base.metadata.drop_all(engine)
     except Exception as e:
         print(f"Ошибка: {e}")
 
-# Получаем курсы валют в формате xml от ЦБ РФ
-def get_currency_valute():
+def get_currencies_cbr():
+    """Получаем курсы валют в формате xml от ЦБ РФ"""
+
     response = requests.get(cbr_url)
     # print(response.text)
     root = etree.fromstring(response.content)
     return root
 
-# Заполняем таблицу с валютами
-def add_all_currency_valute():
-    valute = get_currency_valute().xpath("//Valute")
+def fill_currency_table():
+    """Заполняем таблицу с валютами"""
+
+    valute = get_currencies_cbr().xpath("//Valute")
 
     with Session() as session:
         try:
@@ -72,15 +76,18 @@ def add_all_currency_valute():
             print(f"Ошибка: {e}")
             session.rollback()
 
-# Добавляем подписку пользователя на валюты
-def add_subscription_valute():
-    valute = get_currency_valute()
-
-# Возвращает database курсов валют
-def get_valute():
+def get_currencies_from_database():
     """Возвращает базу данных курсов валют"""
 
     with Session() as session:
         # .all() возвращает список всех объектов Currency
         currencies = session.query(Currency).all()
         return currencies
+
+def get_users_from_database():
+    """Возвращает базу данных пользователей"""
+
+    with Session() as session:
+        # .all() возвращает список всех объектов Users
+        users = session.query(UserBase).all()
+        return users

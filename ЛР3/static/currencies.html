@@ -28,7 +28,7 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Код (CharCode)</th>
+                        <th>Код</th>
                         <th>Название</th>
                     </tr>
                 </thead>
@@ -37,7 +37,7 @@
                     {% for curr in currencies %}
                     <tr>
                         <td>{{ curr.id }}</td>
-                        <td><b>{{ curr.code }}</b></td>
+                        <td>{{ curr.code }}</td>
                         <td>{{ curr.name }}</td>
                     </tr>
                     {% else %}

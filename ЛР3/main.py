@@ -4,9 +4,10 @@ from fastapi.responses import FileResponse, RedirectResponse
 import os
 from database import (
     create_db_and_tables,
-    add_all_currency_valute,
+    fill_currency_table,
     drop_db_and_tables,
-    get_valute)
+    get_currencies_from_database,
+    get_users_from_database)
 
 
 app = FastAPI()
@@ -24,13 +25,23 @@ def main_page():
 
 # Страница с пользователями
 @app.get("/users")
-def users_page():
-    return FileResponse("static/users.html")
+def users_page(request: Request):
+    # Получаем список пользователей из нашей базы данных
+    users = get_users_from_database()
+
+    # Отправляем данные в шаблон
+    # request обязателен для TemplateResponse
+    return templates.TemplateResponse(
+        request,
+        "users.html",
+        {"users": users}
+    )
 
 # Страница с курсами валют
 @app.get("/currencies")
 def currencies_page(request: Request):
-    currencies = get_valute()
+    # Получаем курсы валют из нашей базы данных
+    currencies = get_currencies_from_database()
 
     # Отправляем данные в шаблон
     # request обязателен для TemplateResponse
@@ -86,7 +97,7 @@ if __name__ == "__main__":
     create_db_and_tables()
 
     # Заполняем таблицу с валютами
-    add_all_currency_valute()
+    fill_currency_table()
 
     # Запускаем сервер
     os.system("uvicorn main:app --reload")
