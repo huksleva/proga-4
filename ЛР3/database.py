@@ -97,13 +97,8 @@ def get_user_from_database(user_id: int):
     """Возвращает информацию о пользователе по его id"""
 
     with Session() as session:
-        user = session.query(UserBase).filter_by(id=user_id).first()
-
-        # Проверяем существует ли уже такой пользователь
-        if user:
-            raise HTTPException(status_code=404, detail="Пользователь не найден")
-        else:
-            return user
+        user = session.get(UserBase, user_id)
+        return user
 
 def get_subscriptions_from_database():
     """Возвращает базу данных подписок пользователей"""

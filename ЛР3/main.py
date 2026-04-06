@@ -1,6 +1,7 @@
+from fastapi import HTTPException
 from fastapi import FastAPI, Form, Request
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 import os
 from database import (
@@ -20,8 +21,9 @@ app = FastAPI()
 # Шаблонизатор
 templates = Jinja2Templates(directory="static")
 
-# Монтируем папку src по адресу /src
+# Монтируем папки
 app.mount("/src", StaticFiles(directory="src"), name="src")
+app.mount("/css", StaticFiles(directory="css"), name="css")
 
 
 # GET-запросы
@@ -79,13 +81,20 @@ def users_page(request: Request, user_id: int):
     # Получаем данные о пользователе из нашей БД
     user = get_user_from_database(user_id)
 
-    # Отправляем данные в шаблон
-    # request обязателен для TemplateResponse
+    # Проверяем существует ли уже такой пользователь
+    if not user:
+        # Автоматически вызывает обработчик 404
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+    # Отправляем данные
     return templates.TemplateResponse(
-        request,
-        "userinfo.html",
-        {"user": user}
-    )
+    request,
+    "userinfo.html",
+    {"user": user})
+
+
+
+
 
 
 
@@ -114,7 +123,14 @@ def users_page(user_id: int):
 
 
 
-
+# Обработчик 404
+@app.exception_handler(404)
+async def custom_404(request: Request, exc):
+    return templates.TemplateResponse(
+        request,
+        "404.html",
+        status_code=404
+    )
 
 
 
