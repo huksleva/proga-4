@@ -4,6 +4,7 @@ from datetime import datetime
 from models import Base, Currency, UserBase, Subscription
 import requests
 from lxml import etree
+from fastapi.responses import JSONResponse
 
 
 # Ссылки
@@ -100,7 +101,7 @@ def get_subscriptions_from_database():
         return subscriptions
 
 def add_new_user_to_database(user_name, e_mail):
-    """Добавляет нового пользователя в базу данных"""
+    """Добавляет нового пользователя в базу данных. Ответ возвращает в формате JSON."""
 
     try:
         with Session() as session:
@@ -109,11 +110,19 @@ def add_new_user_to_database(user_name, e_mail):
             # существует ли уже такой пользователь
             check = session.query(UserBase).filter_by(username=user_name).first()
             if check:
-                raise ValueError("Пользователь с таким именем уже существует")
+                return {
+                    "success": False,
+                    "username": user_name,
+                    "email": e_mail,
+                    "msg": "Пользователь с таким именем уже существует"}
 
             check = session.query(UserBase).filter_by(email=e_mail).first()
             if check:
-                raise ValueError("Пользователь с таким email уже существует")
+                return {
+                    "success": False,
+                    "username": user_name,
+                    "email": e_mail,
+                    "msg": "Пользователь с таким email уже существует"}
 
 
             # 1. Создаем объект пользователя
@@ -125,7 +134,16 @@ def add_new_user_to_database(user_name, e_mail):
             # 3. Фиксируем изменения в БД
             session.commit()
 
+            # 4. Отправляем JSON ответ
+            return {
+                "success": True,
+                "id": new_user.id,
+                "username": new_user.username,
+                "email": new_user.email,
+                "created_at": new_user.created_at.isoformat(),
+                "msg": "Пользователь создан"}
+
     except Exception as e:
         print(f"\nОшибка при создании: {e}")
         print("Username:", user_name, "\nemail:", e_mail, "\n")
-        return
+        return JSONResponse(status_code=400, content={"status": "error", "message": str(e)})

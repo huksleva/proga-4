@@ -20,7 +20,7 @@
 
         <!-- Форма для создания нового пользователя или обновления информации о нём -->
         <div class="row justify-content-center">
-            <form method="post" action="/users" class="col-auto g-3">
+            <form method="post" id="createUserForm" class="col-auto g-3">
                 <label>
                     Имя
                     <input type="text" class="form-control" name="username" required>
@@ -29,13 +29,13 @@
                     Почта
                     <input type="email" class="form-control" name="email" required>
                 </label>
-                <button type="submit" class="btn btn-primary">Создать нового пользователя</button>
+                <button type="submit" class="btn btn-primary">Добавить нового пользователя</button>
             </form>
         </div>
 
         <!-- Форма для удаления пользователя по имени-->
         <div class="row justify-content-center">
-            <form method="get" action="/users" class="col-auto g-4">
+            <form method="get" id="deleteUserForm" class="col-auto g-4">
                 <label>
                     Имя
                     <input type="text" class="form-control" required>
@@ -64,7 +64,7 @@
                         <th>Дата и время создания</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="userList">
                     <!-- Цикл по всем пользователям -->
                     {% for user in users %}
                     <tr>
@@ -83,5 +83,7 @@
         </div>
     </div>
 
+    <!-- Подключаем JS -->
+    <script src="{{ url_for('src', path='index.js') }}"></script>
 </body>
 </html>

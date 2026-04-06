@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Form, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 import os
 from database import (
     create_db_and_tables,
@@ -16,6 +17,9 @@ app = FastAPI()
 
 # Шаблонизатор
 templates = Jinja2Templates(directory="static")
+
+# Монтируем папку src по адресу /src
+app.mount("/src", StaticFiles(directory="src"), name="src")
 
 
 # GET-запросы
@@ -79,8 +83,8 @@ def users_page(request: Request, user_id: int):
 # Создаёт нового пользователя
 @app.post("/users")
 def users_page(username: str = Form(...), email: str = Form(...)):
-    add_new_user_to_database(username, email)
-    return RedirectResponse("/users", status_code=303)
+    json_response = add_new_user_to_database(username, email)
+    return json_response
 
 
 
