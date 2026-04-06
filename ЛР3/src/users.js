@@ -24,7 +24,9 @@ createUserForm.addEventListener('submit', async function(event) {
         if (result.status === "success") {
             // Удаляем строку "Таблица пуста", если она есть
             const emptyRow = document.getElementById('emptyRow');
-            if (emptyRow) emptyRow.remove();
+            if (emptyRow) {
+                emptyRow.remove();
+            }
 
             // Обновляем страницу без перезагрузки (добавляем элемент в список)
             const newRow = document.createElement('tr');
@@ -83,7 +85,6 @@ deleteUserForm.addEventListener('submit', async function(event) {
         // Обрабатываем ответ
         if (result.status === "success") {
             // Удаляем строку из таблицы визуально (по ID)
-            const row = document.querySelector(`#userList tr td:first-child:nth-child(1):contains('${userId}')`)?.closest('tr');
             // Проще: перебираем все строки и сравниваем текст первой ячейки
             const rows = document.querySelectorAll('#userList tr');
             for (const row of rows) {
@@ -96,6 +97,16 @@ deleteUserForm.addEventListener('submit', async function(event) {
 
             // Очищаем ИМЕННО эту форму
             deleteUserForm.reset();
+
+            // ПРОВЕРКА: Если строк не осталось, добавляем заглушку
+            const tbody = document.getElementById('userList');
+            if (tbody.children.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.id = 'emptyRow'; // Важно: тот же ID, что ищет код добавления
+                emptyRow.innerHTML = `<td colspan="4" class="text-center">Таблица пуста</td>`;
+                tbody.appendChild(emptyRow);
+            }
+
             alert(result.msg);
 
         } else {

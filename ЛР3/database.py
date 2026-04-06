@@ -161,7 +161,7 @@ def delete_user_from_database(user_id):
                 # Пользователь не найден: 404
                 return JSONResponse(
                     status_code=404,
-                    content={"status": "error", "message": "Пользователь не найден"}
+                    content={"status": "error", "msg": "Пользователь не найден"}
                 )
 
 
@@ -170,7 +170,7 @@ def delete_user_from_database(user_id):
 
             return JSONResponse(
                 status_code=200,
-                content={"status": "success", "message": "Пользователь удалён"}
+                content={"status": "success", "msg": "Пользователь удалён"}
             )
 
     except Exception as e:
@@ -180,5 +180,5 @@ def delete_user_from_database(user_id):
         # Ошибка сервера/БД: 500
         return JSONResponse(
             status_code=500,
-            content={"status": "error", "message": "Внутренняя ошибка сервера"}
+            content={"status": "error", "msg": "Внутренняя ошибка сервера"}
         )
