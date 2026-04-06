@@ -30,6 +30,26 @@
                         <input type="email" class="form-control" name="email" required>
                     </label>
                     <button type="submit" class="btn btn-primary">Добавить нового пользователя</button>
+                    <button type="button" class="btn btn-primary">Создать случайного пользователя</button>
+                </form>
+            </div>
+
+            <!-- Форма для обновления информации о пользователе по id-->
+            <div class="row justify-content-center">
+                <form method="put" id="updateUserForm" class="col-auto g-3">
+                    <label>
+                        Новое имя
+                        <input type="text" class="form-control" name="username" required>
+                    </label>
+                    <label>
+                        Новая почта
+                        <input type="email" class="form-control" name="email" required>
+                    </label>
+                    <label>
+                        ID пользователя
+                        <input type="number" class="form-control" name="user_id" required min="1">
+                    </label>
+                    <button type="submit" class="btn btn-warning">Обновить данные пользователя</button>
                 </form>
             </div>
 

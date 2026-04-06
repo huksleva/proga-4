@@ -44,8 +44,9 @@ createUserForm.addEventListener('submit', async function(event) {
             // Очищаем форму
             createUserForm.reset();
 
-            // Выводим сообщение на экран
-            alert(result.msg);
+            // Выводим сообщение
+            // alert(result.msg);
+            console.log(result.msg);
         } else {
             alert("Ошибка: " + result.msg);
         }
@@ -107,7 +108,9 @@ deleteUserForm.addEventListener('submit', async function(event) {
                 tbody.appendChild(emptyRow);
             }
 
-            alert(result.msg);
+            // Выводим сообщение
+            // alert(result.msg);
+            console.log(result.msg);
 
         } else {
             alert("Ошибка: " + result.msg);
