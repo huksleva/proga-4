@@ -111,7 +111,7 @@ def add_new_user_to_database(user_name, e_mail):
             check = session.query(UserBase).filter_by(username=user_name).first()
             if check:
                 return {
-                    "success": False,
+                    "status": "unsuccess",
                     "username": user_name,
                     "email": e_mail,
                     "msg": "Пользователь с таким именем уже существует"}
@@ -119,7 +119,7 @@ def add_new_user_to_database(user_name, e_mail):
             check = session.query(UserBase).filter_by(email=e_mail).first()
             if check:
                 return {
-                    "success": False,
+                    "status": "unsuccess",
                     "username": user_name,
                     "email": e_mail,
                     "msg": "Пользователь с таким email уже существует"}
@@ -136,14 +136,49 @@ def add_new_user_to_database(user_name, e_mail):
 
             # 4. Отправляем JSON ответ
             return {
-                "success": True,
+                "status": "success",
                 "id": new_user.id,
                 "username": new_user.username,
                 "email": new_user.email,
-                "created_at": new_user.created_at.isoformat(),
+                # Форматируем дату как строку: "2026:04:06:20:07"
+                "created_at": new_user.created_at.strftime("%d:%m:%Y %H:%M"),
                 "msg": "Пользователь создан"}
 
     except Exception as e:
         print(f"\nОшибка при создании: {e}")
         print("Username:", user_name, "\nemail:", e_mail, "\n")
         return JSONResponse(status_code=400, content={"status": "error", "message": str(e)})
+
+def delete_user_from_database(user_id):
+    """Удаляет пользователя из БД по id"""
+
+    try:
+        with Session() as session:
+            # Ищем пользователя по первичному ключу (быстрее и безопаснее)
+            user = session.get(UserBase, user_id)
+
+            if not user:
+                # Пользователь не найден: 404
+                return JSONResponse(
+                    status_code=404,
+                    content={"status": "error", "message": "Пользователь не найден"}
+                )
+
+
+            session.delete(user)
+            session.commit()
+
+            return JSONResponse(
+                status_code=200,
+                content={"status": "success", "message": "Пользователь удалён"}
+            )
+
+    except Exception as e:
+        print(f"\nОшибка при удалении: {e}")
+        print("id:", user_id, "\n")
+
+        # Ошибка сервера/БД: 500
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "message": "Внутренняя ошибка сервера"}
+        )

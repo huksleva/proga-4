@@ -10,7 +10,8 @@ from database import (
     get_currencies_from_database,
     get_users_from_database,
     get_subscriptions_from_database,
-    add_new_user_to_database)
+    add_new_user_to_database,
+    delete_user_from_database)
 
 
 app = FastAPI()
@@ -92,11 +93,11 @@ def users_page(username: str = Form(...), email: str = Form(...)):
 
 # DELETE запросы
 
-# Удаляет нового пользователя
-
-
-# Создать нового пользователя (принимает username и email)
-
+# Удаляет пользователя
+@app.delete("/users/{user_id}")
+def users_page(user_id: int):
+    json_response = delete_user_from_database(user_id)
+    return json_response
 
 
 
