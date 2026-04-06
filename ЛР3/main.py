@@ -11,7 +11,8 @@ from database import (
     get_users_from_database,
     get_subscriptions_from_database,
     add_new_user_to_database,
-    delete_user_from_database)
+    delete_user_from_database,
+    get_user_from_database)
 
 
 app = FastAPI()
@@ -75,7 +76,16 @@ def subscriptions_page(request: Request):
 # Страница информации о пользователе
 @app.get("/users/{user_id}")
 def users_page(request: Request, user_id: int):
-    pass
+    # Получаем данные о пользователе из нашей БД
+    user = get_user_from_database(user_id)
+
+    # Отправляем данные в шаблон
+    # request обязателен для TemplateResponse
+    return templates.TemplateResponse(
+        request,
+        "userinfo.html",
+        {"user": user}
+    )
 
 
 

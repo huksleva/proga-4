@@ -5,6 +5,7 @@ from models import Base, Currency, UserBase, Subscription
 import requests
 from lxml import etree
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import HTTPException
 
 
 # Ссылки
@@ -91,6 +92,18 @@ def get_users_from_database():
         # .all() возвращает список всех объектов Users
         users = session.query(UserBase).all()
         return users
+
+def get_user_from_database(user_id: int):
+    """Возвращает информацию о пользователе по его id"""
+
+    with Session() as session:
+        user = session.query(UserBase).filter_by(id=user_id).first()
+
+        # Проверяем существует ли уже такой пользователь
+        if user:
+            raise HTTPException(status_code=404, detail="Пользователь не найден")
+        else:
+            return user
 
 def get_subscriptions_from_database():
     """Возвращает базу данных подписок пользователей"""
