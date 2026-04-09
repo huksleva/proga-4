@@ -15,6 +15,36 @@
         </div>
     </div>
 
+    <!-- Форма для создания подписки пользователя на валюту -->
+    <div class="row justify-content-center">
+        <form method="post" id="addSubscriptionToUser" class="col-auto g-3">
+            <label>
+                ID пользователя
+                <input type="number" min="1" class="form-control" name="user_id" required>
+            </label>
+            <label>
+                ID валюты
+                <input type="number" min="0" class="form-control" name="currency_id" required>
+            </label>
+            <button type="submit" class="btn btn-primary">Добавить подписку</button>
+        </form>
+    </div>
+
+    <!-- Форма для удаления подписки пользователя на валюту -->
+    <div class="row justify-content-center">
+        <form id="deleteSubscriptionToUser" class="col-auto g-3">
+            <label>
+                ID пользователя
+                <input type="number" min="1" class="form-control" name="user_id" required>
+            </label>
+            <label>
+                ID валюты
+                <input type="number" min="0" class="form-control" name="currency_id" required>
+            </label>
+            <button type="submit" class="btn btn-danger">Удалить подписку</button>
+        </form>
+    </div>
+
     <!-- Название таблицы -->
     <div class="container mt-5">
         <div class="row justify-content-center">
@@ -49,6 +79,7 @@
         </div>
     </div>
 
-
+    <!-- Подключаем JS -->
+    <script src="{{ url_for('src', path='subscriptions.js') }}?v={{ file_mtime }}"></script>
 </body>
 </html>

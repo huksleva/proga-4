@@ -1,11 +1,11 @@
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import create_engine
 from datetime import datetime
 from models import Base, Currency, UserBase, Subscription
 import requests
 from lxml import etree
 from fastapi.responses import JSONResponse
-from fastapi.exceptions import HTTPException
 
 
 # Ссылки
@@ -226,3 +226,70 @@ def update_user_from_database(user_id: int, new_username: str, new_email: str):
             status_code=500,
             content={"status": "error", "message": "Ошибка сервера"}
         )
+
+def add_subscription_to_user(user_id: int, currency_id: int):
+    """Создаёт новую подписку на валюту для пользователя. Нужен id пользователя и id валюты"""
+
+    try:
+        with Session() as session:
+            # 1. Проверяем, существует ли пользователь
+            user = session.get(UserBase, user_id)
+            if not user:
+                return JSONResponse(
+                    status_code=404,
+                    content={"status": "error", "message": "Пользователь не найден"}
+                )
+
+            # 2. Проверяем, существует ли валюта
+            currency = session.get(Currency, currency_id)  # предполагаем такую модель
+            if not currency:
+                return JSONResponse(
+                    status_code=404,
+                    content={"status": "error", "message": "Валюта не найдена"}
+                )
+
+            # 3. Проверяем, нет ли уже такой подписки
+            existing = session.query(Subscription).filter_by(
+                user_id=user_id,
+                currency_id=currency_id
+            ).first()
+
+            if existing:
+                return JSONResponse(
+                    status_code=409,  # Conflict
+                    content={"status": "error", "message": "Подписка уже существует"}
+                )
+
+            # 4. Создаём новую подписку
+            new_subscription = Subscription(
+                user_id=user_id,
+                currency_id=currency_id
+            )
+
+            session.add(new_subscription)
+            session.commit()
+            session.refresh(new_subscription)  # Чтобы получить ID после commit
+
+            # 5. Возвращаем данные для обновления UI
+            return {
+                "status": "success",
+                "message": "Подписка добавлена",
+                "user_id": user_id,
+                "currency_id": currency_id,
+                "currency_code": currency.code,  # например, "USD"
+                "currency_name": currency.name,  # например, "Доллар США"
+            }
+
+    except IntegrityError as e:
+        print(f"Ошибка целостности БД: {e}")
+        return JSONResponse(
+            status_code=400,
+            content={"status": "error", "message": "Ошибка при создании подписки"}
+        )
+    except Exception as e:
+        print(f"Ошибка при добавлении подписки: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "message": "Внутренняя ошибка сервера"}
+        )
+

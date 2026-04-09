@@ -4,17 +4,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 import os
-from database import (
-    create_db_and_tables,
-    fill_currency_table,
-    drop_db_and_tables,
-    get_currencies_from_database,
-    get_users_from_database,
-    get_subscriptions_from_database,
-    add_new_user_to_database,
-    delete_user_from_database,
-    get_user_from_database,
-    update_user_from_database)
+from database import *
 
 
 app = FastAPI()
@@ -25,6 +15,8 @@ templates = Jinja2Templates(directory="static")
 # Монтируем папки
 app.mount("/src", StaticFiles(directory="src"), name="src")
 app.mount("/css", StaticFiles(directory="css"), name="css")
+
+
 
 
 # GET-запросы
@@ -96,9 +88,6 @@ def users_page(request: Request, user_id: int):
 
 
 
-
-
-
 # POST запросы
 
 # Создаёт нового пользователя
@@ -107,7 +96,10 @@ def users_page(username: str = Form(...), email: str = Form(...)):
     json_response = add_new_user_to_database(username, email)
     return json_response
 
-
+# Создаёт новую подписку на валюту для пользователя
+@app.post("/subscriptions")
+def subscriptions_page(user_id: int = Form(...), currency_id: int = Form(...)):
+    return add_subscription_to_user(user_id, currency_id)
 
 
 
@@ -128,9 +120,6 @@ def users_page(user_id: int):
 @app.put("/users/{user_id}")
 def update_user_info(user_id: int, username: str = Form(...), email: str = Form(...)):
     return update_user_from_database(user_id, username, email)
-
-
-
 
 
 

@@ -18,7 +18,7 @@
         <!-- Контейнер для форм -->
         <div class="container mb-5">
 
-            <!-- Форма для создания нового пользователя или обновления информации о нём -->
+            <!-- Форма для создания нового пользователя -->
             <div class="row justify-content-center">
                 <form method="post" id="createUserForm" class="col-auto g-3">
                     <label>
@@ -30,6 +30,21 @@
                         <input type="email" class="form-control" name="email" required>
                     </label>
                     <button type="submit" class="btn btn-primary">Создать пользователя</button>
+                </form>
+            </div>
+
+            <!-- Форма для создания подписки пользователя на валюту -->
+            <div class="row justify-content-center">
+                <form id="addSubscriptionToUser" class="col-auto g-3">
+                    <label>
+                        ID пользователя
+                        <input type="number" min="1" class="form-control" name="user_id" required>
+                    </label>
+                    <label>
+                        ID валюты
+                        <input type="number" min="0" class="form-control" name="currency_id" required>
+                    </label>
+                    <button type="submit" class="btn btn-primary">Добавить подписку</button>
                 </form>
             </div>
 
@@ -63,6 +78,9 @@
                 </form>
             </div>
         </div>
+
+        <!-- Для доп отступа -->
+        <div class="container mt-5"><div class="row justify-content-center"></div></div>
 
         <!-- Название таблицы -->
         <div class="container mt-5">
