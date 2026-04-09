@@ -58,6 +58,7 @@ createUserForm.addEventListener('submit', async function(event) {
 
 
 
+
 // Находим форму удаления пользователя
 const deleteUserForm = document.getElementById('deleteUserForm');
 
@@ -122,4 +123,75 @@ deleteUserForm.addEventListener('submit', async function(event) {
     }
 
 })
+
+
+
+
+// Находим форму для обновления данных о пользователе
+const updateUserForm = document.getElementById('updateUserForm');
+
+// Вешаем слушатель на отправку формы
+updateUserForm.addEventListener('submit', async function(event) {
+    event.preventDefault(); // Блокируем перезагрузку
+
+
+    // 1. Собираем данные из полей
+    const formData = new FormData(updateUserForm);
+    const userId = formData.get('user_id'); // Получаем ID
+
+    try {
+        // 2. Отправляем PUT-запрос на сервер
+        // Используем /users/{id}, так как ID уже в пути
+        const response = await fetch(`/users/${userId}`, {
+            method: 'PUT',
+            body: formData // Отправляем как form-data
+        });
+
+        const result = await response.json();
+        // console.log('Ответ сервера:', result);
+
+        // 3. Обрабатываем успешный ответ
+        if (result.status === 'success') {
+
+            // Ищем строку в таблице по ID и обновляем её
+            const rows = document.querySelectorAll('#userList tr');
+            for (const row of rows) {
+                const idCell = row.querySelector('td:first-child');
+                // Сравниваем текст ячейки с ID (приводим к строке для надёжности)
+                if (idCell && idCell.textContent.trim() === String(userId)) {
+
+                    // Обновляем содержимое ячеек (кроме первой с ID)
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length >= 3) {
+                        // Ячейка 1: Имя (с ссылкой)
+                        cells[1].innerHTML = `<a href="/users/${userId}">${result.username}</a>`;
+                        // Ячейка 2: Email
+                        cells[2].textContent = result.email;
+                        // Ячейка 3: Дата (если сервер вернул обновлённую)
+                        if (result.created_at && cells[3]) {
+                            cells[3].textContent = result.created_at;
+                        }
+                    }
+
+                    // console.log('Строка в таблице обновлена');
+                    break; // Выходим из цикла, так как нашли
+                }
+            }
+
+            // Очищаем форму и показываем успех
+            updateUserForm.reset();
+            // alert(result.message || "Данные обновлены!");
+
+        } else {
+            // Обработка ошибки от сервера (например, "Пользователь не найден")
+            alert("Ошибка: " + (result.message || "Неизвестная ошибка"));
+        }
+
+    } catch (error) {
+        //console.error("❌ Ошибка сети:", error);
+        alert("Не удалось связаться с сервером");
+    }
+});
+
+
 

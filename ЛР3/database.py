@@ -108,7 +108,7 @@ def get_subscriptions_from_database():
         subscriptions = session.query(Subscription).all()
         return subscriptions
 
-def add_new_user_to_database(user_name, e_mail):
+def add_new_user_to_database(user_name: str, e_mail: str):
     """Добавляет нового пользователя в базу данных. Ответ возвращает в формате JSON."""
 
     try:
@@ -189,4 +189,40 @@ def delete_user_from_database(user_id):
         return JSONResponse(
             status_code=500,
             content={"status": "error", "msg": "Внутренняя ошибка сервера"}
+        )
+
+def update_user_from_database(user_id: int, new_username: str, new_email: str):
+    """Обновляет данные пользователя в БД"""
+
+    try:
+        with Session() as session:
+            user = session.get(UserBase, user_id)
+
+            if not user:
+                return JSONResponse(
+                    status_code=404,
+                    content={"status": "error", "message": "Пользователь не найден"}
+                )
+
+            # Обновляем поля
+            user.username = new_username
+            user.email = new_email
+            user.created_at = datetime.now()
+
+            session.commit()
+            print("\nСРАБОТАЛО")
+            return {
+                "status": "success",
+                "message": "Пользователь обновлён",
+                "username": user.username,
+                "email": user.email,
+                "created_at": user.created_at.strftime("%d:%m:%Y %H:%M")
+            }
+        
+
+    except Exception as e:
+        print(f"Ошибка обновления: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "message": "Ошибка сервера"}
         )

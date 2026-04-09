@@ -13,7 +13,8 @@ from database import (
     get_subscriptions_from_database,
     add_new_user_to_database,
     delete_user_from_database,
-    get_user_from_database)
+    get_user_from_database,
+    update_user_from_database)
 
 
 app = FastAPI()
@@ -117,6 +118,17 @@ def users_page(username: str = Form(...), email: str = Form(...)):
 def users_page(user_id: int):
     json_response = delete_user_from_database(user_id)
     return json_response
+
+
+
+
+# PUT запросы
+
+# Обновляет данные о пользователе по его id
+@app.put("/users/{user_id}")
+def update_user_info(user_id: int, username: str = Form(...), email: str = Form(...)):
+    return update_user_from_database(user_id, username, email)
+
 
 
 

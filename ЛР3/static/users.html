@@ -29,14 +29,13 @@
                         Почта
                         <input type="email" class="form-control" name="email" required>
                     </label>
-                    <button type="submit" class="btn btn-primary">Добавить нового пользователя</button>
-                    <button type="button" class="btn btn-primary">Создать случайного пользователя</button>
+                    <button type="submit" class="btn btn-primary">Создать пользователя</button>
                 </form>
             </div>
 
             <!-- Форма для обновления информации о пользователе по id-->
             <div class="row justify-content-center">
-                <form method="put" id="updateUserForm" class="col-auto g-3">
+                <form id="updateUserForm" class="col-auto g-3">
                     <label>
                         Новое имя
                         <input type="text" class="form-control" name="username" required>
@@ -55,7 +54,7 @@
 
             <!-- Форма для удаления пользователя по имени-->
             <div class="row justify-content-center">
-                <form method="get" id="deleteUserForm" class="col-auto g-4">
+                <form id="deleteUserForm" class="col-auto g-4">
                     <label>
                         ID пользователя
                         <input type="number" name="user_id" class="form-control" required min="1">
@@ -104,6 +103,6 @@
         </div>
 
         <!-- Подключаем JS -->
-        <script src="{{ url_for('src', path='users.js') }}"></script>
+        <script src="{{ url_for('src', path='users.js') }}?v={{ file_mtime }}"></script>
     </body>
 </html>
