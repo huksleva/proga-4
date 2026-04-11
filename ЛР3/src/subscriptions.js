@@ -130,5 +130,3 @@ deleteUserSubscription.addEventListener('submit', async function(event) {
 
 
 
-
-
