@@ -71,7 +71,7 @@ deleteUserForm.addEventListener('submit', async function(event) {
     const userId = deleteUserForm.querySelector('[name="user_id"]').value;
 
     try {
-        // Отправляем DELETE на /users/{id}, а не на /users
+        // Отправляем DELETE на /users/{id}
         const response = await fetch(`/users/${userId}`, {
             method: 'DELETE',
             headers: {

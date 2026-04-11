@@ -250,12 +250,8 @@ def add_subscription_to_user(user_id: int, currency_id: int):
                 )
 
             # 3. Проверяем, нет ли уже такой подписки
-            existing = session.query(Subscription).filter_by(
-                user_id=user_id,
-                currency_id=currency_id
-            ).first()
-
-            if existing:
+            subscription = session.get(Subscription, (user_id, currency_id))
+            if subscription:
                 return JSONResponse(
                     status_code=409,  # Conflict
                     content={"status": "error", "message": "Подписка уже существует"}
