@@ -111,7 +111,7 @@ deleteUserForm.addEventListener('submit', async function(event) {
 
             // Выводим сообщение
             // alert(result.msg);
-            console.log(result.msg);
+            // console.log(result.msg);
 
         } else {
             alert("Ошибка: " + result.msg);

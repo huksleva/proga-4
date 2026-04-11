@@ -234,13 +234,13 @@ def add_subscription_to_user(user_id: int, currency_id: int):
         with Session() as session:
             # 1. Проверяем, существует ли пользователь
             user = session.get(UserBase, user_id)
-            print("\n\n", user.created_at)
+
             if not user:
                 return JSONResponse(
                     status_code=404,
                     content={"status": "error", "message": "Пользователь не найден"}
                 )
-            print("\n", user.created_at)
+
             # 2. Проверяем, существует ли валюта
             currency = session.get(Currency, currency_id)  # предполагаем такую модель
             if not currency:
@@ -248,29 +248,28 @@ def add_subscription_to_user(user_id: int, currency_id: int):
                     status_code=404,
                     content={"status": "error", "message": "Валюта не найдена"}
                 )
-            print("\n", user.created_at)
+
             # 3. Проверяем, нет ли уже такой подписки
             existing = session.query(Subscription).filter_by(
                 user_id=user_id,
                 currency_id=currency_id
             ).first()
-            print("\n", user.created_at)
+
             if existing:
                 return JSONResponse(
                     status_code=409,  # Conflict
                     content={"status": "error", "message": "Подписка уже существует"}
                 )
-            print("\n", user.created_at)
+
             # 4. Создаём новую подписку
             new_subscription = Subscription(
                 user_id=user_id,
                 currency_id=currency_id
             )
-            print("\n", user.created_at)
+
             session.add(new_subscription)
             session.commit()
-            session.refresh(new_subscription)  # Чтобы получить ID после commit
-            print("\n", user.created_at, "\n")
+
             # 5. Возвращаем данные для обновления UI
             return {
                 "status": "success",
@@ -292,7 +291,8 @@ def add_subscription_to_user(user_id: int, currency_id: int):
             content={"status": "error", "message": "Внутренняя ошибка сервера"}
         )
 
-def delete_subscription_from_database(user_id: int, currency_id: int):
+def delete_subscription_from_database(currency_id: int, user_id: int):
     """Удаляет подписку пользователя на валюту"""
+
 
     pass

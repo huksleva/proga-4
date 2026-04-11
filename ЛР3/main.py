@@ -111,9 +111,9 @@ def delete_user(user_id: int):
     return delete_user_from_database(user_id)
 
 # Удаляет подписку пользователя на валюту
-@app.delete("/subscriptions/{currency_id}")
-def delete_subscription(currency_id: int):
-    return delete_subscription_from_database(currency_id)
+@app.delete("/subscriptions")
+def delete_subscription(currency_id: int = Form(...), user_id: int = Form(...)):
+    return delete_subscription_from_database(currency_id, user_id)
 
 
 

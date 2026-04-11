@@ -64,14 +64,14 @@ addSubscriptionToUser.addEventListener('submit', async function(event) {
 
 
 // Находим форму для удаления подписки пользователя на валюту
-const deleteSubscriptionToUser = document.getElementById('deleteSubscriptionToUser');
+const deleteUserSubscription = document.getElementById('deleteUserSubscription');
 
 // Вешаем слушатель на отправку формы
-deleteSubscriptionToUser.addEventListener('submit', async function(event) {
+deleteUserSubscription.addEventListener('submit', async function(event) {
     event.preventDefault(); // Блокируем перезагрузку
 
     // 1. Собираем данные
-    const formData = new FormData(deleteSubscriptionToUser);
+    const formData = new FormData(deleteUserSubscription);
     const userId = formData.get('user_id');
     const currencyId = formData.get('currency_id');
 
@@ -84,8 +84,45 @@ deleteSubscriptionToUser.addEventListener('submit', async function(event) {
             },
             body: formData
         });
+        const result = await response.json();
 
+        // 3. Обрабатываем успех
+        if (result.status === 'success') {
+            // Ищем таблицу подписок и удаляем строку
+            const subscriptionsTable = document.getElementById('subscriptionsList');
 
+            if (subscriptionsTable) {
+
+                // Перебор всех строк таблицы
+                for (const row of subscriptionsTable.rows) {
+                    if (row.id === "noSubscriptionsRow") continue;
+
+                    // Если id пользователя и валюты совпадают, то удаляем строку и выходим из цикла
+                    if ((row[0].textContent.trim() === userId) &&
+                        (row[1].textContent.trim() === currencyId)) {
+                        row.remove();
+                        // console.log("Подписка удалена")
+                        break;
+                    }
+                }
+
+                // Если таблица пуста - добавляем заглушку
+                const remainingRows = subscriptionsTable.querySelectorAll('tr:not(#noSubscriptionsRow)');
+                if (remainingRows.length === 0) {
+                    const emptyRow = document.createElement('tr');
+                    emptyRow.id = 'noSubscriptionsRow';
+                    emptyRow.innerHTML = '<td colspan="2" class="text-center">Нет активных подписок</td>';
+                    subscriptionsTable.appendChild(emptyRow);
+                }
+            }
+
+            // Очищаем форму и показываем успех
+            deleteUserSubscription.reset();
+            // alert(result.message || "Подписка добавлена!");
+        } else {
+            // Обработка ошибки (например, "подписка уже существует")
+            alert("Ошибка: " + (result.message || result.msg || "Неизвестная ошибка"));
+        }
 
     } catch (error) {
         console.error("Ошибка сети:", error);
