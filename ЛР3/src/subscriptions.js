@@ -74,7 +74,7 @@ deleteUserSubscription.addEventListener('submit', async function(event) {
     const currencyId = formData.get('currency_id');
 
     try {
-        // 2. Отправляем POST-запрос на сервер
+        // 2. Отправляем DELETE-запрос на сервер
         const response = await fetch('/subscriptions', {
             method: 'DELETE',
             headers: {
