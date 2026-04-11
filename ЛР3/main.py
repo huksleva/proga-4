@@ -88,6 +88,12 @@ def users_page(request: Request, user_id: int):
     "userinfo.html",
     {"user": user})
 
+# Эндпоинт для ручного обновления списка валют и их курсов
+@app.get("/currencies/update")
+def update_currencies_page():
+    fill_currency_table()
+    return RedirectResponse(url="/currencies")
+
 
 
 
@@ -104,11 +110,6 @@ def users_page(username: str = Form(...), email: str = Form(...)):
 def subscriptions_page(user_id: int = Form(...), currency_id: int = Form(...)):
     return add_subscription_to_user(user_id, currency_id)
 
-# Эндпоинт для ручного обновления списка валют и их курсов
-@app.post("currencies/update")
-def update_currencies_page():
-    fill_currency_table()
-    return RedirectResponse(url="/currencies")
 
 
 

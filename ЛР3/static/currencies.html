@@ -18,7 +18,9 @@
     <!-- Кнопка для обновления курса валют -->
     <div class="container">
         <div class="row justify-content-center">
-            <button id="updateCurrenciesButton" type="submit" class="col-auto g-3 btn btn-primary">Обновить данные о курсах валют</button>
+            <div class="col-auto g-3">
+                <a class="btn btn-primary" href="/currencies/update">Обновить данные о курсах валют</a>
+            </div>
         </div>
     </div>
 
@@ -57,5 +59,8 @@
             </table>
         </div>
     </div>
+
+    <!-- Подключаем JS -->
+    <script src="{{ url_for('src', path='currencies.js') }}?v={{ file_mtime }}"></script>
 </body>
 </html>
