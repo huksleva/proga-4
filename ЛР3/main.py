@@ -4,6 +4,9 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 import os
+
+from starlette.responses import RedirectResponse
+
 from database import *
 
 
@@ -100,6 +103,12 @@ def users_page(username: str = Form(...), email: str = Form(...)):
 @app.post("/subscriptions")
 def subscriptions_page(user_id: int = Form(...), currency_id: int = Form(...)):
     return add_subscription_to_user(user_id, currency_id)
+
+# Эндпоинт для ручного обновления списка валют и их курсов
+@app.post("currencies/update")
+def update_currencies_page():
+    fill_currency_table()
+    return RedirectResponse(url="/currencies")
 
 
 
