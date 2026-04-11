@@ -7,15 +7,9 @@ addSubscriptionToUser.addEventListener('submit', async function(event) {
     event.preventDefault(); // Блокируем перезагрузку
 
     // 1. Собираем данные
-    const formData = new FormData(addSubscriptionForm);
+    const formData = new FormData(addSubscriptionToUser);
     const userId = formData.get('user_id');
     const currencyId = formData.get('currency_id');
-
-    // Валидация на клиенте
-    if (!userId || !currencyId || isNaN(userId) || isNaN(currencyId)) {
-        alert("Введите корректные ID (положительные числа)");
-        return;
-    }
 
     try {
         // 2. Отправляем POST-запрос на сервер
@@ -43,29 +37,15 @@ addSubscriptionToUser.addEventListener('submit', async function(event) {
                 // Создаём новую строку
                 const newRow = document.createElement('tr');
                 newRow.innerHTML = `
-                    <td>${result.subscription_id}</td>
                     <td>${result.user_id}</td>
-                    <td>${result.currency_code} (${result.currency_name})</td>
-                    <td>${result.created_at}</td>
-                    <td>
-                        <button class="btn btn-sm btn-danger remove-subscription" 
-                                data-sub-id="${result.subscription_id}">
-                            Удалить
-                        </button>
-                    </td>
+                    <td>${result.currency_id}</td>
                 `;
                 subscriptionsTable.appendChild(newRow);
-
-                // Вешаем обработчик на кнопку удаления (если нужно)
-                newRow.querySelector('.remove-subscription')?.addEventListener('click', (e) => {
-                    // Здесь можно добавить логику удаления подписки
-                    console.log('Удаление подписки:', result.subscription_id);
-                });
             }
 
             // Очищаем форму и показываем успех
-            addSubscriptionForm.reset();
-            alert(result.message || "Подписка добавлена!");
+            addSubscriptionToUser.reset();
+            // alert(result.message || "Подписка добавлена!");
 
         } else {
             // Обработка ошибки (например, "подписка уже существует")
@@ -88,6 +68,29 @@ const deleteSubscriptionToUser = document.getElementById('deleteSubscriptionToUs
 
 // Вешаем слушатель на отправку формы
 deleteSubscriptionToUser.addEventListener('submit', async function(event) {
+    event.preventDefault(); // Блокируем перезагрузку
+
+    // 1. Собираем данные
+    const formData = new FormData(deleteSubscriptionToUser);
+    const userId = formData.get('user_id');
+    const currencyId = formData.get('currency_id');
+
+    try {
+        // 2. Отправляем POST-запрос на сервер
+        const response = await fetch('/subscriptions', {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json'
+            },
+            body: formData
+        });
+
+
+
+    } catch (error) {
+        console.error("Ошибка сети:", error);
+        alert("Не удалось связаться с сервером");
+    }
 
 
 

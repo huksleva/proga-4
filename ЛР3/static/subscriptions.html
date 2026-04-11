@@ -62,7 +62,7 @@
                         <th>Currency ID</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="subscriptionsList">
                     <!-- Цикл по всем подпискам -->
                     {% for sub in subscriptions %}
                     <tr>
@@ -71,7 +71,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="2" class="text-center">Таблица пуста</td>
+                        <td id="noSubscriptionsRow" colspan="2" class="text-center">Таблица пуста</td>
                     </tr>
                     {% endfor %}
                 </tbody>

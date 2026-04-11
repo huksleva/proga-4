@@ -134,7 +134,8 @@ def add_new_user_to_database(user_name: str, e_mail: str):
 
 
             # 1. Создаем объект пользователя
-            new_user = UserBase(username=user_name, email=e_mail, created_at=datetime.now())
+            # Форматируем дату как строку: "2026:04:06:20:07"
+            new_user = UserBase(username=user_name, email=e_mail, created_at=datetime.now().strftime("%d:%m:%Y %H:%M"))
 
             # 2. Добавляем в сессию (готовим к отправке)
             session.add(new_user)
@@ -148,8 +149,7 @@ def add_new_user_to_database(user_name: str, e_mail: str):
                 "id": new_user.id,
                 "username": new_user.username,
                 "email": new_user.email,
-                # Форматируем дату как строку: "2026:04:06:20:07"
-                "created_at": new_user.created_at.strftime("%d:%m:%Y %H:%M"),
+                "created_at": new_user.created_at,
                 "msg": "Пользователь создан"}
 
     except Exception as e:
@@ -207,7 +207,7 @@ def update_user_from_database(user_id: int, new_username: str, new_email: str):
             # Обновляем поля
             user.username = new_username
             user.email = new_email
-            user.created_at = datetime.now()
+            user.created_at = datetime.now().strftime("%d:%m:%Y %H:%M")
 
             session.commit()
             print("\nСРАБОТАЛО")
@@ -216,7 +216,7 @@ def update_user_from_database(user_id: int, new_username: str, new_email: str):
                 "message": "Пользователь обновлён",
                 "username": user.username,
                 "email": user.email,
-                "created_at": user.created_at.strftime("%d:%m:%Y %H:%M")
+                "created_at": user.created_at
             }
         
 
@@ -234,12 +234,13 @@ def add_subscription_to_user(user_id: int, currency_id: int):
         with Session() as session:
             # 1. Проверяем, существует ли пользователь
             user = session.get(UserBase, user_id)
+            print("\n\n", user.created_at)
             if not user:
                 return JSONResponse(
                     status_code=404,
                     content={"status": "error", "message": "Пользователь не найден"}
                 )
-
+            print("\n", user.created_at)
             # 2. Проверяем, существует ли валюта
             currency = session.get(Currency, currency_id)  # предполагаем такую модель
             if not currency:
@@ -247,37 +248,35 @@ def add_subscription_to_user(user_id: int, currency_id: int):
                     status_code=404,
                     content={"status": "error", "message": "Валюта не найдена"}
                 )
-
+            print("\n", user.created_at)
             # 3. Проверяем, нет ли уже такой подписки
             existing = session.query(Subscription).filter_by(
                 user_id=user_id,
                 currency_id=currency_id
             ).first()
-
+            print("\n", user.created_at)
             if existing:
                 return JSONResponse(
                     status_code=409,  # Conflict
                     content={"status": "error", "message": "Подписка уже существует"}
                 )
-
+            print("\n", user.created_at)
             # 4. Создаём новую подписку
             new_subscription = Subscription(
                 user_id=user_id,
                 currency_id=currency_id
             )
-
+            print("\n", user.created_at)
             session.add(new_subscription)
             session.commit()
             session.refresh(new_subscription)  # Чтобы получить ID после commit
-
+            print("\n", user.created_at, "\n")
             # 5. Возвращаем данные для обновления UI
             return {
                 "status": "success",
                 "message": "Подписка добавлена",
                 "user_id": user_id,
-                "currency_id": currency_id,
-                "currency_code": currency.code,  # например, "USD"
-                "currency_name": currency.name,  # например, "Доллар США"
+                "currency_id": currency_id
             }
 
     except IntegrityError as e:
@@ -293,3 +292,7 @@ def add_subscription_to_user(user_id: int, currency_id: int):
             content={"status": "error", "message": "Внутренняя ошибка сервера"}
         )
 
+def delete_subscription_from_database(user_id: int, currency_id: int):
+    """Удаляет подписку пользователя на валюту"""
+
+    pass
