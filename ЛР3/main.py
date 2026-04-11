@@ -26,12 +26,12 @@ app.mount("/css", StaticFiles(directory="css"), name="css")
 
 # Главная страница
 @app.get("/")
-def main_page():
+async def main_page():
     return FileResponse("static/index.html")
 
 # Страница с пользователями
 @app.get("/users")
-def users_page(request: Request):
+async def users_page(request: Request):
     # Получаем список пользователей из нашей базы данных
     users = get_users_from_database()
 
@@ -45,7 +45,7 @@ def users_page(request: Request):
 
 # Страница с курсами валют
 @app.get("/currencies")
-def currencies_page(request: Request):
+async def currencies_page(request: Request):
     # Получаем курсы валют из нашей базы данных
     currencies = get_currencies_from_database()
 
@@ -59,7 +59,7 @@ def currencies_page(request: Request):
 
 # Страница с подписками
 @app.get("/subscriptions")
-def subscriptions_page(request: Request):
+async def subscriptions_page(request: Request):
     # Получаем подписки пользователей из нашей базы данных
     subscriptions = get_subscriptions_from_database()
 
@@ -73,7 +73,7 @@ def subscriptions_page(request: Request):
 
 # Страница информации о пользователе
 @app.get("/users/{user_id}")
-def users_page(request: Request, user_id: int):
+async def users_page(request: Request, user_id: int):
     # Получаем данные о пользователе из нашей БД
     user = get_user_from_database(user_id)
 
@@ -93,7 +93,7 @@ def users_page(request: Request, user_id: int):
 
 # Эндпоинт для ручного обновления списка валют и их курсов
 @app.get("/currencies/update")
-def update_currencies_page():
+async def update_currencies_page():
     fill_currency_table()
     return RedirectResponse(url="/currencies")
 
@@ -104,13 +104,13 @@ def update_currencies_page():
 
 # Создаёт нового пользователя
 @app.post("/users")
-def users_page(username: str = Form(...), email: str = Form(...)):
+async def users_page(username: str = Form(...), email: str = Form(...)):
     json_response = add_new_user_to_database(username, email)
     return json_response
 
 # Создаёт новую подписку на валюту для пользователя
 @app.post("/subscriptions")
-def subscriptions_page(user_id: int = Form(...), currency_id: int = Form(...)):
+async def subscriptions_page(user_id: int = Form(...), currency_id: int = Form(...)):
     return add_subscription_to_user(user_id, currency_id)
 
 
@@ -120,12 +120,12 @@ def subscriptions_page(user_id: int = Form(...), currency_id: int = Form(...)):
 
 # Удаляет пользователя
 @app.delete("/users/{user_id}")
-def delete_user(user_id: int):
+async def delete_user(user_id: int):
     return delete_user_from_database(user_id)
 
 # Удаляет подписку пользователя на валюту
 @app.delete("/subscriptions")
-def delete_subscription(currency_id: int = Form(...), user_id: int = Form(...)):
+async def delete_subscription(currency_id: int = Form(...), user_id: int = Form(...)):
     return delete_subscription_from_database(currency_id, user_id)
 
 
@@ -135,7 +135,7 @@ def delete_subscription(currency_id: int = Form(...), user_id: int = Form(...)):
 
 # Обновляет данные о пользователе по его id
 @app.put("/users/{user_id}")
-def update_user_info(user_id: int, username: str = Form(...), email: str = Form(...)):
+async def update_user_info(user_id: int, username: str = Form(...), email: str = Form(...)):
     return update_user_from_database(user_id, username, email)
 
 
