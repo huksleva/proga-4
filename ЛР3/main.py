@@ -54,7 +54,7 @@ def currencies_page(request: Request):
     return templates.TemplateResponse(
         request,
         "currencies.html",
-        {"currencies": currencies},
+        {"currencies": currencies}
     )
 
 # Страница с подписками
@@ -82,11 +82,14 @@ def users_page(request: Request, user_id: int):
         # Автоматически вызывает обработчик 404
         raise HTTPException(status_code=404, detail="Пользователь не найден")
 
+    # Получаем курсы валют из нашей базы данных
+    currencies = get_currencies_from_database()
+
     # Отправляем данные
     return templates.TemplateResponse(
     request,
     "userinfo.html",
-    {"user": user})
+    {"user": user, "currencies": currencies})
 
 # Эндпоинт для ручного обновления списка валют и их курсов
 @app.get("/currencies/update")
