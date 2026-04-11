@@ -56,8 +56,6 @@ addSubscriptionToUser.addEventListener('submit', async function(event) {
         console.error("Ошибка сети:", error);
         alert("Не удалось связаться с сервером");
     }
-
-
 })
 
 
@@ -98,8 +96,8 @@ deleteUserSubscription.addEventListener('submit', async function(event) {
                     if (row.id === "noSubscriptionsRow") continue;
 
                     // Если id пользователя и валюты совпадают, то удаляем строку и выходим из цикла
-                    if ((row[0].textContent.trim() === userId) &&
-                        (row[1].textContent.trim() === currencyId)) {
+                    if ((row.cells[0].textContent.trim() === userId) &&
+                        (row.cells[1].textContent.trim() === currencyId)) {
                         row.remove();
                         // console.log("Подписка удалена")
                         break;
@@ -128,9 +126,6 @@ deleteUserSubscription.addEventListener('submit', async function(event) {
         console.error("Ошибка сети:", error);
         alert("Не удалось связаться с сервером");
     }
-
-
-
 })
 
 

@@ -294,5 +294,55 @@ def add_subscription_to_user(user_id: int, currency_id: int):
 def delete_subscription_from_database(currency_id: int, user_id: int):
     """Удаляет подписку пользователя на валюту"""
 
+    try:
+        with Session() as session:
+            # Ищем подписку по составному первичному ключу
+            # Для составного ключа передаём кортеж (user_id, currency_id)
+            subscription = session.get(Subscription, (user_id, currency_id))
 
-    pass
+            # Если не найдена — возвращаем 404
+            if not subscription:
+                return JSONResponse(
+                    status_code=404,
+                    content={
+                        "status": "error",
+                        "message": "Подписка не найдена"
+                    }
+                )
+
+            # Удаляем и фиксируем изменения
+            session.delete(subscription)
+            session.commit()
+
+            # Возвращаем успех
+            return {
+                "status": "success",
+                "message": "Подписка удалена",
+                "user_id": user_id,
+                "currency_id": currency_id
+            }
+
+
+    except IntegrityError as e:
+        # Ошибка целостности БД (например, внешние ключи)
+        print(f"Ошибка целостности БД: {e}")
+        session.rollback()  # Откатываем транзакцию
+        return JSONResponse(
+            status_code=400,
+            content={
+                "status": "error",
+                "message": "Ошибка при удалении: нарушение целостности данных"
+            }
+        )
+
+    except Exception as e:
+        # Любая другая ошибка
+        print(f"Ошибка при удалении подписки: {e}")
+        session.rollback()  # Обязательно откатываем!
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "message": "Внутренняя ошибка сервера"
+            }
+        )
