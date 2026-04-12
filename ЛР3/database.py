@@ -1,4 +1,4 @@
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import create_engine
 from datetime import datetime
@@ -6,7 +6,6 @@ from models import Base, Currency, UserBase, Subscription
 import requests
 from lxml import etree
 from fastapi.responses import JSONResponse
-
 
 # Ссылки
 cbr_url = "https://www.cbr.ru/scripts/XML_daily.asp"
@@ -16,9 +15,17 @@ DB_URL = "db/database.db"
 engine = create_engine("sqlite:///" + DB_URL, echo=True)
 
 # Создание сессии
-Session = sessionmaker(engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
+def get_db():
+    """Функция-генератор зависимости"""
+
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 def create_db_and_tables():
@@ -29,6 +36,7 @@ def create_db_and_tables():
     except Exception as e:
         print(f"Ошибка: {e}")
 
+
 def drop_db_and_tables():
     """Удаление всех таблиц"""
 
@@ -36,6 +44,7 @@ def drop_db_and_tables():
         Base.metadata.drop_all(engine)
     except Exception as e:
         print(f"Ошибка: {e}")
+
 
 def get_currencies_cbr():
     """Получаем курсы валют в формате xml от ЦБ РФ"""
@@ -45,16 +54,16 @@ def get_currencies_cbr():
     root = etree.fromstring(response.content)
     return root
 
+
 def fill_currency_table():
     """Заполняем таблицу с валютами"""
 
     valute = get_currencies_cbr().xpath("//Valute")
 
-    with Session() as session:
-        try:
+    try:
+        with SessionLocal() as session:
             # Работает с неймспейсами: ищет элементы по локальному имени
             for i, el in enumerate(valute):
-
                 # Получаем нужные нам данные из XML
                 name_el = el.find("Name").text
                 # id_value = el.get("ID")
@@ -73,272 +82,162 @@ def fill_currency_table():
             # Логирование
             session.commit()
 
-        except Exception as e:
-            print(f"Ошибка: {e}")
-            session.rollback()
+    except Exception as e:
+        print(f"Ошибка: {e}")
+        session.rollback()
 
-def get_currencies_from_database():
+
+def get_currencies_from_database(db: Session):
     """Возвращает базу данных курсов валют"""
 
-    with Session() as session:
-        # .all() возвращает список всех объектов Currency
-        currencies = session.query(Currency).all()
-        return currencies
+    currencies = db.query(Currency).all()
+    return currencies
 
-def get_users_from_database():
+
+def get_users_from_database(db: Session):
     """Возвращает базу данных пользователей"""
 
-    with Session() as session:
-        # .all() возвращает список всех объектов Users
-        users = session.query(UserBase).all()
-        return users
+    users = db.query(UserBase).all()
+    return users
 
-def get_user_from_database(user_id: int):
+
+def get_user_from_database(user_id: int, db: Session):
     """Возвращает информацию о пользователе по его id"""
 
-    with Session() as session:
-        user = session.get(UserBase, user_id)
-        return user
+    user = db.get(UserBase, user_id)
+    return user
 
-def get_subscriptions_from_database():
+
+def get_subscriptions_from_database(db: Session):
     """Возвращает базу данных подписок пользователей"""
 
-    with Session() as session:
-        # .all() возвращает список всех объектов Users
-        subscriptions = session.query(Subscription).all()
-        return subscriptions
+    subscriptions = db.query(Subscription).all()
+    return subscriptions
 
-def add_new_user_to_database(user_name: str, e_mail: str):
+
+def add_new_user_to_database(user_name: str, e_mail: str, db: Session):
     """Добавляет нового пользователя в базу данных. Ответ возвращает в формате JSON."""
 
     try:
-        with Session() as session:
+        # Проверяем (email и username должны быть уникальны у каждого пользователя)
+        # Если пользователь уже существует
+        if db.query(UserBase).filter_by(username=user_name).first():
+            return None
+        # Если почта уже существует
+        if db.query(UserBase).filter_by(email=e_mail).first():
+            return None
 
-            # Проверяем (email и username должны быть уникальны у каждого пользователя)
-            # существует ли уже такой пользователь
-            check = session.query(UserBase).filter_by(username=user_name).first()
-            if check:
-                return {
-                    "status": "unsuccess",
-                    "username": user_name,
-                    "email": e_mail,
-                    "msg": "Пользователь с таким именем уже существует"}
+        # 1. Создаем объект пользователя
+        # Форматируем дату как строку: "2026:04:06 20:07"
+        new_user = UserBase(
+            username=user_name,
+            email=e_mail,
+            created_at=datetime.now().strftime("%d:%m:%Y %H:%M"))
 
-            check = session.query(UserBase).filter_by(email=e_mail).first()
-            if check:
-                return {
-                    "status": "unsuccess",
-                    "username": user_name,
-                    "email": e_mail,
-                    "msg": "Пользователь с таким email уже существует"}
+        # 2. Добавляем в сессию (готовим к отправке)
+        db.add(new_user)
 
+        # 3. Фиксируем изменения в БД
+        db.commit()
 
-            # 1. Создаем объект пользователя
-            # Форматируем дату как строку: "2026:04:06:20:07"
-            new_user = UserBase(username=user_name, email=e_mail, created_at=datetime.now().strftime("%d:%m:%Y %H:%M"))
+        # 4. Важно, чтобы получить id после commit
+        db.refresh(new_user)
 
-            # 2. Добавляем в сессию (готовим к отправке)
-            session.add(new_user)
-
-            # 3. Фиксируем изменения в БД
-            session.commit()
-
-            # 4. Отправляем JSON ответ
-            return {
-                "status": "success",
-                "id": new_user.id,
-                "username": new_user.username,
-                "email": new_user.email,
-                "created_at": new_user.created_at,
-                "msg": "Пользователь создан"}
+        # 5. Отправляем ответ
+        return new_user
 
     except Exception as e:
-        print(f"\nОшибка при создании: {e}")
-        print("Username:", user_name, "\nemail:", e_mail, "\n")
-        return JSONResponse(status_code=400, content={"status": "error", "message": str(e)})
-
-def delete_user_from_database(user_id):
-    """Удаляет пользователя из БД по id"""
-
-    try:
-        with Session() as session:
-            # Ищем пользователя по первичному ключу (быстрее и безопаснее)
-            user = session.get(UserBase, user_id)
-
-            if not user:
-                # Пользователь не найден: 404
-                return JSONResponse(
-                    status_code=404,
-                    content={"status": "error", "msg": "Пользователь не найден"}
-                )
+        print(f"Критическая ошибка БД: {e}")
+        return None
 
 
-            session.delete(user)
-            session.commit()
-
-            return JSONResponse(
-                status_code=200,
-                content={"status": "success", "msg": "Пользователь удалён"}
-            )
-
-    except Exception as e:
-        print(f"\nОшибка при удалении: {e}")
-        print("id:", user_id, "\n")
-
-        # Ошибка сервера/БД: 500
-        return JSONResponse(
-            status_code=500,
-            content={"status": "error", "msg": "Внутренняя ошибка сервера"}
-        )
-
-def update_user_from_database(user_id: int, new_username: str, new_email: str):
+def update_user_from_database(user_id: int, new_username: str, new_email: str, db: Session):
     """Обновляет данные пользователя в БД"""
 
     try:
-        with Session() as session:
-            user = session.get(UserBase, user_id)
+        updatetable_user = db.get(UserBase, user_id)
 
-            if not user:
-                return JSONResponse(
-                    status_code=404,
-                    content={"status": "error", "message": "Пользователь не найден"}
-                )
+        if not updatetable_user:
+            return None  # Сигнал роуту: пользователь не найден
 
-            # Обновляем поля
-            user.username = new_username
-            user.email = new_email
-            user.created_at = datetime.now().strftime("%d:%m:%Y %H:%M")
+        # Обновляем данные
+        updatetable_user.username = new_username
+        updatetable_user.email = new_email
 
-            session.commit()
-            print("\nСРАБОТАЛО")
-            return {
-                "status": "success",
-                "message": "Пользователь обновлён",
-                "username": user.username,
-                "email": user.email,
-                "created_at": user.created_at
-            }
-        
+        db.commit()
+        db.refresh(updatetable_user)  # Синхронизируем объект с БД после коммита
+
+        return updatetable_user
 
     except Exception as e:
+        db.rollback()
         print(f"Ошибка обновления: {e}")
-        return JSONResponse(
-            status_code=500,
-            content={"status": "error", "message": "Ошибка сервера"}
-        )
+        raise RuntimeError("Ошибка сервера при обновлении")
 
-def add_subscription_to_user(user_id: int, currency_id: int):
+
+def add_subscription_to_user(user_id: int, currency_id: int, db: Session):
     """Создаёт новую подписку на валюту для пользователя. Нужен id пользователя и id валюты"""
 
     try:
-        with Session() as session:
-            # 1. Проверяем, существует ли пользователь
-            user = session.get(UserBase, user_id)
+        # 1. Проверяем, существует ли пользователь
+        if not db.get(UserBase, user_id):
+            return None
 
-            if not user:
-                return JSONResponse(
-                    status_code=404,
-                    content={"status": "error", "message": "Пользователь не найден"}
-                )
+        # 2. Проверяем, существует ли валюта
+        if not db.get(Currency, currency_id):
+            return None
 
-            # 2. Проверяем, существует ли валюта
-            currency = session.get(Currency, currency_id)  # предполагаем такую модель
-            if not currency:
-                return JSONResponse(
-                    status_code=404,
-                    content={"status": "error", "message": "Валюта не найдена"}
-                )
+        # 3. Проверяем, нет ли уже такой подписки. Проверяем по уникальному ключу
+        if db.get(Subscription, (user_id, currency_id)):
+            return None
 
-            # 3. Проверяем, нет ли уже такой подписки
-            subscription = session.get(Subscription, (user_id, currency_id))
-            if subscription:
-                return JSONResponse(
-                    status_code=409,  # Conflict
-                    content={"status": "error", "message": "Подписка уже существует"}
-                )
+        # 4. Создаём новую подписку
+        new_subscription = Subscription(
+            user_id=user_id,
+            currency_id=currency_id
+        )
 
-            # 4. Создаём новую подписку
-            new_subscription = Subscription(
-                user_id=user_id,
-                currency_id=currency_id
-            )
+        # 5. Добавляем в сессию (готовим к отправке)
+        db.add(new_subscription)
 
-            session.add(new_subscription)
-            session.commit()
+        # 6. Фиксируем изменения в БД
+        db.commit()
 
-            # 5. Возвращаем данные для обновления UI
-            return {
-                "status": "success",
-                "message": "Подписка добавлена",
-                "user_id": user_id,
-                "currency_id": currency_id
-            }
+        # 7. Синхронизирует объект с БД
+        db.refresh(new_subscription)
+
+        # 8. Возвращаем данные для обновления UI
+        return new_subscription
 
     except IntegrityError as e:
         print(f"Ошибка целостности БД: {e}")
-        return JSONResponse(
-            status_code=400,
-            content={"status": "error", "message": "Ошибка при создании подписки"}
-        )
+        return None
+
     except Exception as e:
         print(f"Ошибка при добавлении подписки: {e}")
-        return JSONResponse(
-            status_code=500,
-            content={"status": "error", "message": "Внутренняя ошибка сервера"}
-        )
+        return None
 
-def delete_subscription_from_database(currency_id: int, user_id: int):
-    """Удаляет подписку пользователя на валюту"""
+
+def delete_subscription_from_database(currency_id: int, user_id: int, db: Session):
+    """Удаляет подписку пользователя на валюту. Возвращает dict при успехе или None, если не найдена."""
 
     try:
-        with Session() as session:
-            # Ищем подписку по составному первичному ключу
-            # Для составного ключа передаём кортеж (user_id, currency_id)
-            subscription = session.get(Subscription, (user_id, currency_id))
+        # Ищем по составному ключу
+        sub = db.get(Subscription, (user_id, currency_id))
 
-            # Если не найдена — возвращаем 404
-            if not subscription:
-                return JSONResponse(
-                    status_code=404,
-                    content={
-                        "status": "error",
-                        "message": "Подписка не найдена"
-                    }
-                )
+        if not sub:
+            return None  # Сигнал роуту: "не найдено"
 
-            # Удаляем и фиксируем изменения
-            session.delete(subscription)
-            session.commit()
+        db.delete(sub)
+        db.commit()
 
-            # Возвращаем успех
-            return {
-                "status": "success",
-                "message": "Подписка удалена",
-                "user_id": user_id,
-                "currency_id": currency_id
-            }
-
-
-    except IntegrityError as e:
-        # Ошибка целостности БД (например, внешние ключи)
-        print(f"Ошибка целостности БД: {e}")
-        session.rollback()  # Откатываем транзакцию
-        return JSONResponse(
-            status_code=400,
-            content={
-                "status": "error",
-                "message": "Ошибка при удалении: нарушение целостности данных"
-            }
-        )
+        # Возвращаем чистые данные (FastAPI сам упакует их в JSON)
+        return {
+            "user_id": user_id,
+            "currency_id": currency_id
+        }
 
     except Exception as e:
-        # Любая другая ошибка
-        print(f"Ошибка при удалении подписки: {e}")
-        session.rollback()  # Обязательно откатываем!
-        return JSONResponse(
-            status_code=500,
-            content={
-                "status": "error",
-                "message": "Внутренняя ошибка сервера"
-            }
-        )
+        db.rollback()  # Откат при ошибке БД
+        print(f"Ошибка БД: {e}")
+        raise RuntimeError("Ошибка сервера при удалении")  # Пробрасываем дальше
