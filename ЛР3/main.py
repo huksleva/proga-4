@@ -154,8 +154,6 @@ async def delete_user(user_id: int,
         print(f"Ошибка удаления: {e}")
         raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера")
 
-    return delete_user_from_database(user_id)
-
 
 # Удаляет подписку пользователя на валюту
 @app.delete("/subscriptions", response_model=SubscriptionDeleteResponse)

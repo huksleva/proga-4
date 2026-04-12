@@ -1,34 +1,34 @@
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from datetime import datetime
 from models import Base, Currency, UserBase, Subscription
 import requests
 from lxml import etree
-from fastapi.responses import JSONResponse
 
 # Ссылки
 cbr_url = "https://www.cbr.ru/scripts/XML_daily.asp"
-DB_URL = "db/database.db"
+DATABASE_URL = "sqlite+aiosqlite:///./db/database.db"
 
 # Создание движка
-engine = create_engine("sqlite:///" + DB_URL, echo=True)
+engine = create_async_engine(DATABASE_URL, echo=False)
 
-# Создание сессии
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Фабрика асинхронных сессий
+# expire_on_commit=False важно для async, чтобы объекты не "отваливались" после commit
+async_session_factory = async_sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False
+)
 
-
-def get_db():
+async def get_db():
     """Функция-генератор зависимости"""
 
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    async with async_session_factory() as session:
+        yield session
 
 
-def create_db_and_tables():
+async def create_db_and_tables():
     """Создание всех таблиц"""
 
     try:
@@ -37,7 +37,7 @@ def create_db_and_tables():
         print(f"Ошибка: {e}")
 
 
-def drop_db_and_tables():
+async def drop_db_and_tables():
     """Удаление всех таблиц"""
 
     try:
@@ -46,16 +46,15 @@ def drop_db_and_tables():
         print(f"Ошибка: {e}")
 
 
-def get_currencies_cbr():
+async def get_currencies_cbr():
     """Получаем курсы валют в формате xml от ЦБ РФ"""
 
     response = requests.get(cbr_url)
-    # print(response.text)
     root = etree.fromstring(response.content)
     return root
 
 
-def fill_currency_table():
+async def fill_currency_table():
     """Заполняем таблицу с валютами"""
 
     valute = get_currencies_cbr().xpath("//Valute")
@@ -87,35 +86,35 @@ def fill_currency_table():
         session.rollback()
 
 
-def get_currencies_from_database(db: Session):
+async def get_currencies_from_database(db: Session):
     """Возвращает базу данных курсов валют"""
 
     currencies = db.query(Currency).all()
     return currencies
 
 
-def get_users_from_database(db: Session):
+async def get_users_from_database(db: Session):
     """Возвращает базу данных пользователей"""
 
     users = db.query(UserBase).all()
     return users
 
 
-def get_user_from_database(user_id: int, db: Session):
+async def get_user_from_database(user_id: int, db: Session):
     """Возвращает информацию о пользователе по его id"""
 
     user = db.get(UserBase, user_id)
     return user
 
 
-def get_subscriptions_from_database(db: Session):
+async def get_subscriptions_from_database(db: Session):
     """Возвращает базу данных подписок пользователей"""
 
     subscriptions = db.query(Subscription).all()
     return subscriptions
 
 
-def add_new_user_to_database(user_name: str, e_mail: str, db: Session):
+async def add_new_user_to_database(user_name: str, e_mail: str, db: Session):
     """Добавляет нового пользователя в базу данных. Ответ возвращает в формате JSON."""
 
     try:
@@ -151,7 +150,7 @@ def add_new_user_to_database(user_name: str, e_mail: str, db: Session):
         return None
 
 
-def update_user_from_database(user_id: int, new_username: str, new_email: str, db: Session):
+async def update_user_from_database(user_id: int, new_username: str, new_email: str, db: Session):
     """Обновляет данные пользователя в БД"""
 
     try:
@@ -175,7 +174,7 @@ def update_user_from_database(user_id: int, new_username: str, new_email: str, d
         raise RuntimeError("Ошибка сервера при обновлении")
 
 
-def add_subscription_to_user(user_id: int, currency_id: int, db: Session):
+async def add_subscription_to_user(user_id: int, currency_id: int, db: Session):
     """Создаёт новую подписку на валюту для пользователя. Нужен id пользователя и id валюты"""
 
     try:
@@ -218,7 +217,7 @@ def add_subscription_to_user(user_id: int, currency_id: int, db: Session):
         return None
 
 
-def delete_subscription_from_database(currency_id: int, user_id: int, db: Session):
+async def delete_subscription_from_database(currency_id: int, user_id: int, db: Session):
     """Удаляет подписку пользователя на валюту. Возвращает dict при успехе или None, если не найдена."""
 
     try:
