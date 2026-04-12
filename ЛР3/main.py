@@ -200,7 +200,7 @@ async def custom_404(request: Request, exc):
         status_code=404
     )
 
-
+# Миграции Alembic
 def run_migrations():
     """Применяет миграции при старте приложения."""
 
@@ -212,7 +212,7 @@ def run_migrations():
 
 if __name__ == "__main__":
 
-    # Миграции Alembic
+    # Запуск и применение миграций Alembic
     run_migrations()
 
     # Запускаем сервер
