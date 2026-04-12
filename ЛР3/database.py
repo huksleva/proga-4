@@ -1,6 +1,6 @@
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy import select
 from datetime import datetime
 from models import Base, Currency, UserBase, Subscription
 import requests
@@ -60,7 +60,7 @@ async def fill_currency_table():
     valute = get_currencies_cbr().xpath("//Valute")
 
     try:
-        with SessionLocal() as session:
+        async with async_session_factory() as session:
             # Работает с неймспейсами: ищет элементы по локальному имени
             for i, el in enumerate(valute):
                 # Получаем нужные нам данные из XML
@@ -79,51 +79,57 @@ async def fill_currency_table():
                 session.add(record)
 
             # Логирование
-            session.commit()
+            await session.commit()
 
     except Exception as e:
         print(f"Ошибка: {e}")
-        session.rollback()
+        await session.rollback()
 
 
-async def get_currencies_from_database(db: Session):
+async def get_currencies_from_database(db: AsyncSession):
     """Возвращает базу данных курсов валют"""
 
-    currencies = db.query(Currency).all()
+    result = await db.execute(select(Currency))
+    currencies = result.scalars().all()
     return currencies
 
 
-async def get_users_from_database(db: Session):
+async def get_users_from_database(db: AsyncSession):
     """Возвращает базу данных пользователей"""
 
-    users = db.query(UserBase).all()
+    result = await db.execute(select(UserBase))
+    users = result.scalars().all()
     return users
 
 
-async def get_user_from_database(user_id: int, db: Session):
+async def get_user_from_database(user_id: int, db: AsyncSession):
     """Возвращает информацию о пользователе по его id"""
 
     user = db.get(UserBase, user_id)
     return user
 
 
-async def get_subscriptions_from_database(db: Session):
+async def get_subscriptions_from_database(db: AsyncSession):
     """Возвращает базу данных подписок пользователей"""
 
-    subscriptions = db.query(Subscription).all()
+    result = await db.execute(select(Subscription))
+    subscriptions = result.scalars().all()
     return subscriptions
 
 
-async def add_new_user_to_database(user_name: str, e_mail: str, db: Session):
+async def add_new_user_to_database(user_name: str, e_mail: str, db: AsyncSession):
     """Добавляет нового пользователя в базу данных. Ответ возвращает в формате JSON."""
 
     try:
         # Проверяем (email и username должны быть уникальны у каждого пользователя)
-        # Если пользователь уже существует
-        if db.query(UserBase).filter_by(username=user_name).first():
+        # Проверяем имя
+        result = await db.execute(select(UserBase).where(UserBase.username == user_name))
+        if result.scalars().first():
             return None
-        # Если почта уже существует
-        if db.query(UserBase).filter_by(email=e_mail).first():
+
+        # Проверяем почту
+        result = await db.execute(select(UserBase).where(UserBase.email == e_mail))
+        if result.scalars().first():
             return None
 
         # 1. Создаем объект пользователя
@@ -137,10 +143,10 @@ async def add_new_user_to_database(user_name: str, e_mail: str, db: Session):
         db.add(new_user)
 
         # 3. Фиксируем изменения в БД
-        db.commit()
+        await db.commit()
 
         # 4. Важно, чтобы получить id после commit
-        db.refresh(new_user)
+        await db.refresh(new_user)
 
         # 5. Отправляем ответ
         return new_user
@@ -150,11 +156,11 @@ async def add_new_user_to_database(user_name: str, e_mail: str, db: Session):
         return None
 
 
-async def update_user_from_database(user_id: int, new_username: str, new_email: str, db: Session):
+async def update_user_from_database(user_id: int, new_username: str, new_email: str, db: AsyncSession):
     """Обновляет данные пользователя в БД"""
 
     try:
-        updatetable_user = db.get(UserBase, user_id)
+        updatetable_user = await db.get(UserBase, user_id)
 
         if not updatetable_user:
             return None  # Сигнал роуту: пользователь не найден
@@ -163,31 +169,31 @@ async def update_user_from_database(user_id: int, new_username: str, new_email: 
         updatetable_user.username = new_username
         updatetable_user.email = new_email
 
-        db.commit()
-        db.refresh(updatetable_user)  # Синхронизируем объект с БД после коммита
+        await db.commit()
+        await db.refresh(updatetable_user)  # Синхронизируем объект с БД после коммита
 
         return updatetable_user
 
     except Exception as e:
-        db.rollback()
+        await db.rollback()
         print(f"Ошибка обновления: {e}")
         raise RuntimeError("Ошибка сервера при обновлении")
 
 
-async def add_subscription_to_user(user_id: int, currency_id: int, db: Session):
+async def add_subscription_to_user(user_id: int, currency_id: int, db: AsyncSession):
     """Создаёт новую подписку на валюту для пользователя. Нужен id пользователя и id валюты"""
 
     try:
         # 1. Проверяем, существует ли пользователь
-        if not db.get(UserBase, user_id):
+        if not await db.get(UserBase, user_id):
             return None
 
         # 2. Проверяем, существует ли валюта
-        if not db.get(Currency, currency_id):
+        if not await db.get(Currency, currency_id):
             return None
 
         # 3. Проверяем, нет ли уже такой подписки. Проверяем по уникальному ключу
-        if db.get(Subscription, (user_id, currency_id)):
+        if await db.get(Subscription, (user_id, currency_id)):
             return None
 
         # 4. Создаём новую подписку
@@ -200,10 +206,10 @@ async def add_subscription_to_user(user_id: int, currency_id: int, db: Session):
         db.add(new_subscription)
 
         # 6. Фиксируем изменения в БД
-        db.commit()
+        await db.commit()
 
         # 7. Синхронизирует объект с БД
-        db.refresh(new_subscription)
+        await db.refresh(new_subscription)
 
         # 8. Возвращаем данные для обновления UI
         return new_subscription
@@ -217,18 +223,18 @@ async def add_subscription_to_user(user_id: int, currency_id: int, db: Session):
         return None
 
 
-async def delete_subscription_from_database(currency_id: int, user_id: int, db: Session):
+async def delete_subscription_from_database(currency_id: int, user_id: int, db: AsyncSession):
     """Удаляет подписку пользователя на валюту. Возвращает dict при успехе или None, если не найдена."""
 
     try:
         # Ищем по составному ключу
-        sub = db.get(Subscription, (user_id, currency_id))
+        sub = await db.get(Subscription, (user_id, currency_id))
 
         if not sub:
             return None  # Сигнал роуту: "не найдено"
 
-        db.delete(sub)
-        db.commit()
+        await db.delete(sub)
+        await db.commit()
 
         # Возвращаем чистые данные (FastAPI сам упакует их в JSON)
         return {
@@ -237,6 +243,6 @@ async def delete_subscription_from_database(currency_id: int, user_id: int, db: 
         }
 
     except Exception as e:
-        db.rollback()  # Откат при ошибке БД
+        await db.rollback()  # Откат при ошибке БД
         print(f"Ошибка БД: {e}")
         raise RuntimeError("Ошибка сервера при удалении")  # Пробрасываем дальше

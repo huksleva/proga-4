@@ -2,7 +2,8 @@ from fastapi import Depends, HTTPException, FastAPI, Form, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-import os
+from alembic import command
+from alembic.config import Config
 from starlette.responses import RedirectResponse
 from database import *
 from schemas import *
@@ -200,15 +201,20 @@ async def custom_404(request: Request, exc):
     )
 
 
+def run_migrations():
+    """Применяет миграции при старте приложения."""
+
+    alembic_cfg = Config("alembic.ini")
+    command.upgrade(alembic_cfg, "head")
+
+
+
+
 if __name__ == "__main__":
-    # Удаляем все таблицы
-    drop_db_and_tables()
 
-    # Создание всех таблиц
-    create_db_and_tables()
-
-    # Заполняем таблицу с валютами
-    fill_currency_table()
+    # Миграции Alembic
+    run_migrations()
 
     # Запускаем сервер
-    os.system("uvicorn main:app --reload")
+    import uvicorn
+    uvicorn.run("main:app", reload=True)
