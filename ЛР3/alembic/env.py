@@ -6,11 +6,12 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
-from ..models import Base
+
 
 # Добавляем корень проекта в sys.path, чтобы Alembic видел модели
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from models import Base
 config = context.config
 
 if config.config_file_name is not None:
