@@ -31,30 +31,22 @@ async def update_currencies_in_database(db: AsyncSession, currencies: list[dict]
     """Обновляет или создаёт валюты в БД на основе данных от ЦБ"""
 
     updated_count = 0
-
+    
     for curr in currencies:
-        # Ищем валюту по уникальному коду (CharCode)
+        # Ищем валюту по уникальному коду (например, "USD", "EUR")
         result = await db.execute(
             select(Currency).where(Currency.code == curr['char_code'])
         )
         existing = result.scalars().first()
 
         if existing:
-            # Обновляем существующую
+            # Обновляем название (оно может уточняться или меняться)
             existing.name = curr['name']
-            existing.rate = curr['value']
-            existing.nominal = curr['nominal']
-            existing.updated_at = curr['date']
         else:
             # Создаём новую
             new_currency = Currency(
                 code=curr['char_code'],
-                num_code=curr['num_code'],
-                name=curr['name'],
-                rate=curr['value'],
-                nominal=curr['nominal'],
-                created_at=curr['date'],
-                updated_at=curr['date']
+                name=curr['name']
             )
             db.add(new_currency)
 
