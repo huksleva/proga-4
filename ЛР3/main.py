@@ -32,7 +32,7 @@ async def main_page():
 async def users_page(request: Request,
                      db: AsyncSession = Depends(get_db)):
     # Получаем список пользователей из нашей базы данных
-    users = get_users_from_database(db)
+    users = await get_users_from_database(db)
 
     # Отправляем данные в шаблон
     # request обязателен для TemplateResponse
@@ -48,7 +48,7 @@ async def users_page(request: Request,
 async def currencies_page(request: Request,
                           db: AsyncSession = Depends(get_db)):
     # Получаем курсы валют из нашей базы данных
-    currencies = get_currencies_from_database(db)
+    currencies = await get_currencies_from_database(db)
 
     # Отправляем данные в шаблон
     # request обязателен для TemplateResponse
@@ -64,7 +64,7 @@ async def currencies_page(request: Request,
 async def subscriptions_page(request: Request,
                              db: AsyncSession = Depends(get_db)):
     # Получаем подписки пользователей из нашей базы данных
-    subscriptions = get_subscriptions_from_database(db)
+    subscriptions = await get_subscriptions_from_database(db)
 
     # Отправляем данные в шаблон
     # request обязателен для TemplateResponse
@@ -99,7 +99,7 @@ async def users_page(request: Request,
 
 
 # Эндпоинт для ручного обновления списка валют и их курсов
-@app.get("/currencies/update")
+@app.get("/currencies/update", response_model=UpdateCurrenciesResponse)
 async def update_currencies_page(db: AsyncSession = Depends(get_db)):
     """Обновляет список валют из ЦБ РФ"""
 
@@ -115,7 +115,6 @@ async def update_currencies_page(db: AsyncSession = Depends(get_db)):
     try:
         count = await update_currencies_in_database(db, currencies)
         return {
-            "status": "success",
             "message": f"Обновлено {count} валют",
             "count": count
         }
@@ -134,8 +133,8 @@ async def update_currencies_page(db: AsyncSession = Depends(get_db)):
 async def users_page(username: str = Form(...),
                      email: str = Form(...),
                      db: AsyncSession = Depends(get_db)):
-    user = add_new_user_to_database(username, email, db)
-    if not await user:
+    user = await add_new_user_to_database(username, email, db)
+    if not user:
         raise HTTPException(status_code=409, detail="Такой user или email уже существуют, или это другая ошибка в БД")
     return user
 
@@ -145,8 +144,8 @@ async def users_page(username: str = Form(...),
 async def subscriptions_page(user_id: int = Form(...),
                              currency_id: int = Form(...),
                              db: AsyncSession = Depends(get_db)):
-    sub = add_subscription_to_user(user_id, currency_id, db)
-    if not await sub:
+    sub = await add_subscription_to_user(user_id, currency_id, db)
+    if not sub:
         raise HTTPException(status_code=409, detail="Пользователь/валюта не найдены или подписка уже существует")
     return sub
 
@@ -159,8 +158,8 @@ async def delete_user(user_id: int,
                       db: AsyncSession = Depends(get_db)):
     try:
         # 1. Ищем пользователя
-        user = db.get(UserBase, user_id)
-        if not await user:
+        user = await db.get(UserBase, user_id)
+        if not user:
             raise HTTPException(status_code=404, detail="Пользователь не найден")
 
         # 2. Удаляем и коммитим
@@ -168,7 +167,7 @@ async def delete_user(user_id: int,
         await db.commit()
 
         # 3. FastAPI сам сериализует dict в JSON через response_model
-        return {"status": "success", "msg": "Пользователь удалён"}
+        return {"message": "Пользователь удалён"}
 
     except HTTPException:
         raise  # Пропускаем наши 404 дальше
@@ -184,7 +183,7 @@ async def delete_subscription(currency_id: int = Form(...),
                               user_id: int = Form(...),
                               db: AsyncSession = Depends(get_db)):
     # 1. Вызываем чистую БД-функцию
-    result = delete_subscription_from_database(user_id, currency_id, db)
+    result = await delete_subscription_from_database(user_id, currency_id, db)
 
     # 2. Если вернул None -> подписки нет -> 404
     if result is None:
@@ -203,7 +202,7 @@ async def update_user_info(user_id: int,
                            email: str = Form(...),
                            db: AsyncSession = Depends(get_db)):
     # 1. Вызываем БД-функцию
-    result = update_user_from_database(user_id, username, email, db)
+    result = await update_user_from_database(user_id, username, email, db)
 
     # 2. Если вернул None -> 404
     if result is None:
@@ -228,8 +227,8 @@ def run_migrations():
     """Применяет миграции при старте приложения."""
 
     alembic_cfg = Config("alembic.ini")
-    # command.downgrade(alembic_cfg, "base") # Удаляет все таблицы
-    command.upgrade(alembic_cfg, "head") # Создаёт все таблицы
+    command.downgrade(alembic_cfg, "base") # Удаляет все таблицы
+    command.upgrade(alembic_cfg, "head") # Создаёт/обновляет все таблицы
 
 
 

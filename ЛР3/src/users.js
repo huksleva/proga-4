@@ -1,9 +1,8 @@
-
 // Находим форму создания пользователя
 const createUserForm = document.getElementById('createUserForm');
 
 // Вешаем слушатель на отправку формы
-createUserForm.addEventListener('submit', async function(event) {
+createUserForm.addEventListener('submit', async function (event) {
     // Запрещаем стандартную отправку формы (перезагрузку страницы)
     event.preventDefault();
 
@@ -17,39 +16,41 @@ createUserForm.addEventListener('submit', async function(event) {
             body: formData // Отправляем как form-data (сервер поймет Form(...))
         });
 
-        // 5. Получаем JSON ответ
+        // 5. Получаем ответ
         const result = await response.json();
 
         // 6. Обрабатываем ответ
-        if (result.status === "success") {
-            // Удаляем строку "Таблица пуста", если она есть
-            const emptyRow = document.getElementById('emptyRow');
-            if (emptyRow) {
-                emptyRow.remove();
-            }
+        // Если вернулась ошибка
+        if (!response.ok) {
+            alert(result.detail)
+            return; // Прерываем выполнение
+        }
 
-            // Обновляем страницу без перезагрузки (добавляем элемент в список)
-            const newRow = document.createElement('tr');
+        // Удаляем строку "Таблица пуста", если она есть
+        const emptyRow = document.getElementById('emptyRow');
+        if (emptyRow) {
+            emptyRow.remove();
+        }
 
-            newRow.innerHTML = `
+        // Обновляем страницу без перезагрузки (добавляем элемент в список)
+        const newRow = document.createElement('tr');
+
+        newRow.innerHTML = `
                 <td>${result.id}</td>
                 <td><a href="/users/${result.id}">${result.username}</a></td>
                 <td>${result.email}</td>
                 <td>${result.created_at}</td>
             `
 
-            // Добавляем строку в tbody
-            document.getElementById('userList').appendChild(newRow);
+        // Добавляем строку в tbody
+        document.getElementById('userList').appendChild(newRow);
 
-            // Очищаем форму
-            createUserForm.reset();
+        // Очищаем форму
+        createUserForm.reset();
 
-            // Выводим сообщение
-            // alert(result.msg);
-            // console.log(result.msg);
-        } else {
-            alert("Ошибка: " + result.msg);
-        }
+        // Выводим сообщение
+        // alert(result.message);
+        console.log("Пользователь создан");
 
     } catch (error) {
         console.error("Ошибка сети:", error);
@@ -57,13 +58,11 @@ createUserForm.addEventListener('submit', async function(event) {
 })
 
 
-
-
 // Находим форму удаления пользователя
 const deleteUserForm = document.getElementById('deleteUserForm');
 
 // Вешаем слушатель на отправку формы
-deleteUserForm.addEventListener('submit', async function(event) {
+deleteUserForm.addEventListener('submit', async function (event) {
     // Запрещаем стандартную отправку формы (перезагрузку страницы)
     event.preventDefault();
 
@@ -81,41 +80,43 @@ deleteUserForm.addEventListener('submit', async function(event) {
         });
 
 
-        // Получаем JSON ответ
+        // Получаем ответ
         const result = await response.json();
 
         // Обрабатываем ответ
-        if (result.status === "success") {
-            // Удаляем строку из таблицы визуально (по ID)
-            // Проще: перебираем все строки и сравниваем текст первой ячейки
-            const rows = document.querySelectorAll('#userList tr');
-            for (const row of rows) {
-                const idCell = row.querySelector('td:first-child');
-                if (idCell && idCell.textContent === userId) {
-                    row.remove();
-                    break;
-                }
-            }
-
-            // Очищаем ИМЕННО эту форму
-            deleteUserForm.reset();
-
-            // ПРОВЕРКА: Если строк не осталось, добавляем заглушку
-            const tbody = document.getElementById('userList');
-            if (tbody.children.length === 0) {
-                const emptyRow = document.createElement('tr');
-                emptyRow.id = 'emptyRow'; // Важно: тот же ID, что ищет код добавления
-                emptyRow.innerHTML = `<td colspan="4" class="text-center">Таблица пуста</td>`;
-                tbody.appendChild(emptyRow);
-            }
-
-            // Выводим сообщение
-            // alert(result.msg);
-            // console.log(result.msg);
-
-        } else {
-            alert("Ошибка: " + result.msg);
+        // Если вернулась ошибка
+        if (!response.ok) {
+            alert(result.detail)
+            return; // Прерываем выполнение
         }
+
+        // Удаляем строку из таблицы визуально (по ID)
+        // Проще: перебираем все строки и сравниваем текст первой ячейки
+        const rows = document.querySelectorAll('#userList tr');
+        for (const row of rows) {
+            const idCell = row.querySelector('td:first-child');
+            if (idCell && idCell.textContent === userId) {
+                row.remove();
+                break;
+            }
+        }
+
+        // Очищаем ИМЕННО эту форму
+        deleteUserForm.reset();
+
+        // ПРОВЕРКА: Если строк не осталось, добавляем заглушку
+        const tbody = document.getElementById('userList');
+        if (tbody.children.length === 0) {
+            const emptyRow = document.createElement('tr');
+            emptyRow.id = 'emptyRow'; // Важно: тот же ID, что ищет код добавления
+            emptyRow.innerHTML = `<td colspan="4" class="text-center">Таблица пуста</td>`;
+            tbody.appendChild(emptyRow);
+        }
+
+        // Выводим сообщение
+        // alert(result.message);
+        console.log(result.message);
+
 
     } catch (error) {
         console.error("Ошибка сети:", error);
@@ -125,13 +126,11 @@ deleteUserForm.addEventListener('submit', async function(event) {
 })
 
 
-
-
 // Находим форму для обновления данных о пользователе
 const updateUserForm = document.getElementById('updateUserForm');
 
 // Вешаем слушатель на отправку формы
-updateUserForm.addEventListener('submit', async function(event) {
+updateUserForm.addEventListener('submit', async function (event) {
     event.preventDefault(); // Блокируем перезагрузку
 
 
@@ -150,45 +149,45 @@ updateUserForm.addEventListener('submit', async function(event) {
         const result = await response.json();
         // console.log('Ответ сервера:', result);
 
-        // 3. Обрабатываем успешный ответ
-        if (result.status === 'success') {
-
-            // Ищем строку в таблице по ID и обновляем её
-            const rows = document.querySelectorAll('#userList tr');
-            for (const row of rows) {
-                const idCell = row.querySelector('td:first-child');
-                // Сравниваем текст ячейки с ID (приводим к строке для надёжности)
-                if (idCell && idCell.textContent.trim() === String(userId)) {
-
-                    // Обновляем содержимое ячеек (кроме первой с ID)
-                    const cells = row.querySelectorAll('td');
-                    if (cells.length >= 3) {
-                        // Ячейка 1: Имя (с ссылкой)
-                        cells[1].innerHTML = `<a href="/users/${userId}">${result.username}</a>`;
-                        // Ячейка 2: Email
-                        cells[2].textContent = result.email;
-                        // Ячейка 3: Дата (если сервер вернул обновлённую)
-                        if (result.created_at && cells[3]) {
-                            cells[3].textContent = result.created_at;
-                        }
-                    }
-
-                    // console.log('Строка в таблице обновлена');
-                    break; // Выходим из цикла, так как нашли
-                }
-            }
-
-            // Очищаем форму и показываем успех
-            updateUserForm.reset();
-            // alert(result.message || "Данные обновлены!");
-
-        } else {
-            // Обработка ошибки от сервера (например, "Пользователь не найден")
-            alert("Ошибка: " + (result.message || "Неизвестная ошибка"));
+        // 3. Обрабатываем ответ
+        // Если вернулась ошибка
+        if (!response.ok) {
+            alert(result.detail)
+            return; // Прерываем выполнение
         }
 
+        // Ищем строку в таблице по ID и обновляем её
+        const rows = document.querySelectorAll('#userList tr');
+        for (const row of rows) {
+            const idCell = row.querySelector('td:first-child');
+            // Сравниваем текст ячейки с ID (приводим к строке для надёжности)
+            if (idCell && idCell.textContent.trim() === String(userId)) {
+
+                // Обновляем содержимое ячеек (кроме первой с ID)
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 3) {
+                    // Ячейка 1: Имя (с ссылкой)
+                    cells[1].innerHTML = `<a href="/users/${userId}">${result.username}</a>`;
+                    // Ячейка 2: Email
+                    cells[2].textContent = result.email;
+                    // Ячейка 3: Дата (если сервер вернул обновлённую)
+                    if (result.created_at && cells[3]) {
+                        cells[3].textContent = result.created_at;
+                    }
+                }
+
+                // console.log('Строка в таблице обновлена');
+                break; // Выходим из цикла, так как нашли
+            }
+        }
+
+        // Очищаем форму и показываем успех
+        updateUserForm.reset();
+        // alert(result.message || "Данные обновлены!");
+
+
     } catch (error) {
-        //console.error("❌ Ошибка сети:", error);
+        //console.error("Ошибка сети:", error);
         alert("Не удалось связаться с сервером");
     }
 });

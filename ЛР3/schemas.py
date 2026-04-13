@@ -16,7 +16,6 @@ class SubscribeResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 class DeleteResponse(BaseModel):
-    status: str
     message: str
     model_config = {"from_attributes": True}
 
@@ -26,7 +25,6 @@ class SubscriptionDeleteResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 class UpdateCurrenciesResponse(BaseModel):
-    status: str
     message: str
     count: int
     model_config = {"from_attributes": True}
