@@ -20,7 +20,6 @@ app.mount("/css", StaticFiles(directory="css"), name="css")
 
 
 # GET-запросы
-
 # Главная страница
 @app.get("/")
 async def main_page():
@@ -89,7 +88,7 @@ async def users_page(request: Request,
         raise HTTPException(status_code=404, detail="Пользователь не найден")
 
     # Получаем курсы валют из нашей базы данных
-    currencies = get_currencies_from_database(db)
+    currencies = await get_currencies_from_database(db)
 
     # Отправляем данные
     return templates.TemplateResponse(
@@ -127,7 +126,6 @@ async def update_currencies_page(db: AsyncSession = Depends(get_db)):
 
 
 # POST запросы
-
 # Создаёт нового пользователя
 @app.post("/users", response_model=UserResponse)
 async def users_page(username: str = Form(...),
@@ -151,30 +149,22 @@ async def subscriptions_page(user_id: int = Form(...),
 
 
 # DELETE запросы
-
 # Удаляет пользователя
 @app.delete("/users/{user_id}", response_model=DeleteResponse)
 async def delete_user(user_id: int,
                       db: AsyncSession = Depends(get_db)):
-    try:
-        # 1. Ищем пользователя
-        user = await db.get(UserBase, user_id)
-        if not user:
-            raise HTTPException(status_code=404, detail="Пользователь не найден")
+    # 1. Ищем пользователя
+    user = await db.get(UserBase, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
 
-        # 2. Удаляем и коммитим
-        await db.delete(user)
-        await db.commit()
+    # 2. Удаляем и коммитим
+    await db.delete(user)
+    await db.commit()
 
-        # 3. FastAPI сам сериализует dict в JSON через response_model
-        return {"message": "Пользователь удалён"}
+    # 3. FastAPI сам сериализует dict в JSON через response_model
+    return {"message": "Пользователь удалён"}
 
-    except HTTPException:
-        raise  # Пропускаем наши 404 дальше
-    except Exception as e:
-        await db.rollback()  # Откат при любой ошибке БД
-        print(f"Ошибка удаления: {e}")
-        raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера")
 
 
 # Удаляет подписку пользователя на валюту
@@ -194,7 +184,6 @@ async def delete_subscription(currency_id: int = Form(...),
 
 
 # PUT запросы
-
 # Обновляет данные о пользователе по его id
 @app.put("/users/{user_id}", response_model=UserResponse)
 async def update_user_info(user_id: int,
@@ -213,6 +202,7 @@ async def update_user_info(user_id: int,
 
 
 # Обработчик 404
+"""
 @app.exception_handler(404)
 async def custom_404(request: Request, exc):
     print("exc:", exc)
@@ -221,6 +211,7 @@ async def custom_404(request: Request, exc):
         "404.html",
         status_code=404
     )
+"""
 
 # Миграции Alembic
 def run_migrations():

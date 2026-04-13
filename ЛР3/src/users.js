@@ -17,7 +17,7 @@ createUserForm.addEventListener('submit', async function (event) {
         });
 
         // 5. Получаем ответ
-        const result = await response.json();
+        const result = await response.json().catch(() => {});
 
         // 6. Обрабатываем ответ
         // Если вернулась ошибка
@@ -79,9 +79,8 @@ deleteUserForm.addEventListener('submit', async function (event) {
             // Не отправляем body: для DELETE с path-параметром он не нужен
         });
 
-
-        // Получаем ответ
-        const result = await response.json();
+        // Получаем ответ, даже если это ошибка
+        const result = await response.json().catch(() => {});
 
         // Обрабатываем ответ
         // Если вернулась ошибка
