@@ -4,7 +4,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from alembic import command
 from alembic.config import Config
-from starlette.responses import RedirectResponse
+from services.cbrf import CBRFService
 from database import *
 from schemas import *
 
@@ -100,9 +100,31 @@ async def users_page(request: Request,
 
 # Эндпоинт для ручного обновления списка валют и их курсов
 @app.get("/currencies/update")
-async def update_currencies_page():
-    fill_currency_table()
-    return RedirectResponse(url="/currencies")
+async def update_currencies_page(db: AsyncSession = Depends(get_db)):
+    """Обновляет список валют из ЦБ РФ"""
+
+    # 1. Получаем данные от ЦБ
+    currencies = await CBRFService.get_currencies()
+    if not currencies:
+        raise HTTPException(
+            status_code=502,
+            detail="Не удалось получить данные от ЦБ РФ"
+        )
+
+    # 2. Сохраняем в БД
+    try:
+        count = await update_currencies_in_database(db, currencies)
+        return {
+            "status": "success",
+            "message": f"Обновлено {count} валют",
+            "count": count
+        }
+    except Exception as e:
+        print(f"Ошибка сохранения валют: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Ошибка при сохранении данных в БД"
+        )
 
 
 # POST запросы
@@ -194,6 +216,7 @@ async def update_user_info(user_id: int,
 # Обработчик 404
 @app.exception_handler(404)
 async def custom_404(request: Request, exc):
+    print("exc:", exc)
     return templates.TemplateResponse(
         request,
         "404.html",
@@ -205,7 +228,8 @@ def run_migrations():
     """Применяет миграции при старте приложения."""
 
     alembic_cfg = Config("alembic.ini")
-    command.upgrade(alembic_cfg, "head")
+    # command.downgrade(alembic_cfg, "base") # Удаляет все таблицы
+    command.upgrade(alembic_cfg, "head") # Создаёт все таблицы
 
 
 
@@ -217,4 +241,4 @@ if __name__ == "__main__":
 
     # Запускаем сервер
     import uvicorn
-    uvicorn.run("main:app", reload=True)
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

@@ -13,14 +13,20 @@ class UserResponse(BaseModel):
 class SubscribeResponse(BaseModel):
     user_id: int
     currency_id: int
-    model_config = {"from_attributes": True} # Нужно для SQLAlchemy 2.0
+    model_config = {"from_attributes": True}
 
 class DeleteResponse(BaseModel):
     status: str
     message: str
-    model_config = {"from_attributes": True}  # Нужно для SQLAlchemy 2.0
+    model_config = {"from_attributes": True}
 
 class SubscriptionDeleteResponse(BaseModel):
     user_id: int
     currency_id: int
-    model_config = {"from_attributes": True} # Нужно для SQLAlchemy 2.0
+    model_config = {"from_attributes": True}
+
+class UpdateCurrenciesResponse(BaseModel):
+    status: str
+    message: str
+    count: int
+    model_config = {"from_attributes": True}

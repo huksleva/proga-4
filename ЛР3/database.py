@@ -2,9 +2,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy import select
 from datetime import datetime
-from models import Base, Currency, UserBase, Subscription
-import requests
-from lxml import etree
+from models import Currency, UserBase, Subscription
+
 
 # Ссылки
 cbr_url = "https://www.cbr.ru/scripts/XML_daily.asp"
@@ -28,62 +27,41 @@ async def get_db():
         yield session
 
 
-async def create_db_and_tables():
-    """Создание всех таблиц"""
+async def update_currencies_in_database(db: AsyncSession, currencies: list[dict]):
+    """Обновляет или создаёт валюты в БД на основе данных от ЦБ"""
 
-    try:
-        Base.metadata.create_all(engine)
-    except Exception as e:
-        print(f"Ошибка: {e}")
+    updated_count = 0
 
+    for curr in currencies:
+        # Ищем валюту по уникальному коду (CharCode)
+        result = await db.execute(
+            select(Currency).where(Currency.code == curr['char_code'])
+        )
+        existing = result.scalars().first()
 
-async def drop_db_and_tables():
-    """Удаление всех таблиц"""
+        if existing:
+            # Обновляем существующую
+            existing.name = curr['name']
+            existing.rate = curr['value']
+            existing.nominal = curr['nominal']
+            existing.updated_at = curr['date']
+        else:
+            # Создаём новую
+            new_currency = Currency(
+                code=curr['char_code'],
+                num_code=curr['num_code'],
+                name=curr['name'],
+                rate=curr['value'],
+                nominal=curr['nominal'],
+                created_at=curr['date'],
+                updated_at=curr['date']
+            )
+            db.add(new_currency)
 
-    try:
-        Base.metadata.drop_all(engine)
-    except Exception as e:
-        print(f"Ошибка: {e}")
+        updated_count += 1
 
-
-async def get_currencies_cbr():
-    """Получаем курсы валют в формате xml от ЦБ РФ"""
-
-    response = requests.get(cbr_url)
-    root = etree.fromstring(response.content)
-    return root
-
-
-async def fill_currency_table():
-    """Заполняем таблицу с валютами"""
-
-    valute = get_currencies_cbr().xpath("//Valute")
-
-    try:
-        async with async_session_factory() as session:
-            # Работает с неймспейсами: ищет элементы по локальному имени
-            for i, el in enumerate(valute):
-                # Получаем нужные нам данные из XML
-                name_el = el.find("Name").text
-                # id_value = el.get("ID")
-                code_el = el.find("CharCode").text
-
-                # Формируем ответ
-                record = Currency(
-                    id=i,
-                    code=code_el,
-                    name=name_el
-                )
-
-                # Добавляем новую запись в БД
-                session.add(record)
-
-            # Логирование
-            await session.commit()
-
-    except Exception as e:
-        print(f"Ошибка: {e}")
-        await session.rollback()
+    await db.commit()
+    return updated_count
 
 
 async def get_currencies_from_database(db: AsyncSession):
