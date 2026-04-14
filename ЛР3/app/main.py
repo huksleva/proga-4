@@ -1,29 +1,27 @@
 from fastapi import Depends, HTTPException, FastAPI, Form, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
 from alembic import command
 from alembic.config import Config
+from starlette.staticfiles import StaticFiles
 from services.cbrf import CBRFService
-from database import *
+from app.database import *
 from schemas import *
-
 
 app = FastAPI()
 
 # Шаблонизатор
-templates = Jinja2Templates(directory="static")
+templates = Jinja2Templates(directory="templates")
 
 # Монтируем папки
-app.mount("/src", StaticFiles(directory="src"), name="src")
-app.mount("/css", StaticFiles(directory="css"), name="css")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 # GET-запросы
 # Главная страница
 @app.get("/")
 async def main_page():
-    return FileResponse("static/index.html")
+    return FileResponse("../templates/index.html")
 
 
 # Страница с пользователями
@@ -97,8 +95,20 @@ async def users_page(request: Request,
         {"user": user, "currencies": currencies})
 
 
+# POST запросы
+# Создаёт нового пользователя
+@app.post("/users", response_model=UserResponse)
+async def users_page(username: str = Form(...),
+                     email: str = Form(...),
+                     db: AsyncSession = Depends(get_db)):
+    user = await add_new_user_to_database(username, email, db)
+    if not user:
+        raise HTTPException(status_code=409, detail="Такой user или email уже существуют, или это другая ошибка в БД")
+    return user
+
+
 # Эндпоинт для ручного обновления списка валют и их курсов
-@app.get("/currencies/update", response_model=UpdateCurrenciesResponse)
+@app.post("/currencies/update", response_model=UpdateCurrenciesResponse)
 async def update_currencies_page(db: AsyncSession = Depends(get_db)):
     """Обновляет список валют из ЦБ РФ"""
 
@@ -123,18 +133,6 @@ async def update_currencies_page(db: AsyncSession = Depends(get_db)):
             status_code=500,
             detail="Ошибка при сохранении данных в БД"
         )
-
-
-# POST запросы
-# Создаёт нового пользователя
-@app.post("/users", response_model=UserResponse)
-async def users_page(username: str = Form(...),
-                     email: str = Form(...),
-                     db: AsyncSession = Depends(get_db)):
-    user = await add_new_user_to_database(username, email, db)
-    if not user:
-        raise HTTPException(status_code=409, detail="Такой user или email уже существуют, или это другая ошибка в БД")
-    return user
 
 
 # Создаёт новую подписку на валюту для пользователя
@@ -164,7 +162,6 @@ async def delete_user(user_id: int,
 
     # 3. FastAPI сам сериализует dict в JSON через response_model
     return {"message": "Пользователь удалён"}
-
 
 
 # Удаляет подписку пользователя на валюту
@@ -213,19 +210,21 @@ async def custom_404(request: Request, exc):
     )
 """
 
+
 # Миграции Alembic
 def run_migrations():
     """Применяет миграции при старте приложения."""
 
-    alembic_cfg = Config("alembic.ini")
-    command.downgrade(alembic_cfg, "base") # Удаляет все таблицы
-    command.upgrade(alembic_cfg, "head") # Создаёт/обновляет все таблицы
+    import os
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    alembic_ini_path = os.path.join(base_dir, "..", "alembic.ini")
+    alembic_cfg = Config(alembic_ini_path)
 
-
+    # command.downgrade(alembic_cfg, "base") # Удаляет все таблицы
+    command.upgrade(alembic_cfg, "head")  # Создаёт/обновляет все таблицы
 
 
 if __name__ == "__main__":
-
     # Запуск и применение миграций Alembic
     run_migrations()
 
