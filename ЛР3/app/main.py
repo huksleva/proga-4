@@ -7,7 +7,7 @@ from alembic.config import Config
 from starlette.staticfiles import StaticFiles
 from services.cbrf import CBRFService
 from app.database import *
-from schemas import *
+from app.schemas import *
 
 app = FastAPI()
 
