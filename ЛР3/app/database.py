@@ -21,11 +21,15 @@ async_session_factory = async_sessionmaker(
 )
 
 async def get_db():
-    """Функция-генератор зависимости"""
-
+    """Зависимость для получения сессии БД"""
     async with async_session_factory() as session:
-        yield session
-
+        try:
+            yield session
+        except Exception:
+            # Если в коде эндпоинта произошла ошибка — откатываем изменения
+            await session.rollback()
+            raise
+        # Сессия закроется автоматически благодаря конструкции 'async with'
 
 async def update_currencies_in_database(db: AsyncSession, currencies: list[dict]):
     """Обновляет или создаёт валюты в БД на основе данных от ЦБ"""
