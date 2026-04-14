@@ -1,6 +1,6 @@
 from fastapi import Depends, HTTPException, FastAPI, Form, Request
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import FileResponse
+from fastapi.responses import JSONResponse
 from alembic import command
 from alembic.config import Config
 from starlette.staticfiles import StaticFiles
@@ -20,8 +20,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # GET-запросы
 # Главная страница
 @app.get("/")
-async def main_page():
-    return FileResponse("../templates/index.html")
+async def main_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "index.html"
+    )
 
 
 # Страница с пользователями
@@ -204,16 +207,25 @@ async def update_user_info(user_id: int,
 
 
 # Обработчик 404
-"""
 @app.exception_handler(404)
-async def custom_404(request: Request, exc):
-    print("exc:", exc)
+async def custom_404(request: Request, exc: HTTPException):
+    # Проверяем, ожидает ли клиент JSON
+    accept_header = request.headers.get("accept", "")
+
+    # Если запрос от API (ждёт JSON) -> возвращаем JSON
+    if "application/json" in accept_header or request.url.path.startswith("/api"):
+        return JSONResponse(
+            status_code=404,
+            content={"detail": "Ресурс не найден"}
+        )
+
+    # Иначе -> возвращаем HTML-страницу
     return templates.TemplateResponse(
         request,
         "404.html",
         status_code=404
     )
-"""
+
 
 
 # Миграции Alembic
