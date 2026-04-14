@@ -2,7 +2,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy import select
 from datetime import datetime
-from models import Currency, UserBase, Subscription
+from app.models import Currency, UserBase, Subscription
 
 
 # Ссылки
