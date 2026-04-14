@@ -55,6 +55,11 @@ async def currencies_page(request: Request,
         {"currencies": currencies}
     )
 
+# API курсов валют
+@app.get("/api/currencies/")
+async def get_currencies(db: AsyncSession = Depends(get_db)):
+    currencies = await get_currencies_from_database(db)
+    return currencies
 
 # Страница с подписками
 @app.get("/subscriptions")
