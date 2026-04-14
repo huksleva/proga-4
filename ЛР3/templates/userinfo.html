@@ -69,17 +69,17 @@
                             <th>Название</th>
                         </tr>
                     </thead>
-                    <tbody id="userListSub">
-                        {% for curr in currencies %}
-                        <tr>
-                            <td>{{ curr.id }}</td>
-                            <td>{{ curr.code }}</td>
-                            <td>{{ user.name }}</td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="3" class="text-center">Таблица пуста</td>
-                        </tr>
+                    <tbody>
+                        {% for sub in subscriptions %}
+                            <tr>
+                                <td>{{ sub.currency.id }}</td>
+                                <td>{{ sub.currency.code }}</td>
+                                <td>{{ sub.currency.name }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center">Таблица пуста</td>
+                            </tr>
                         {% endfor %}
                     </tbody>
                 </table>

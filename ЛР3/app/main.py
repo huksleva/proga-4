@@ -1,5 +1,6 @@
 from fastapi import Depends, HTTPException, FastAPI, Form, Request
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import joinedload
 from fastapi.responses import JSONResponse
 from alembic import command
 from alembic.config import Config
@@ -93,14 +94,19 @@ async def users_page(request: Request,
         # Автоматически вызывает обработчик 404
         raise HTTPException(status_code=404, detail="Пользователь не найден")
 
-    # Получаем курсы валют из нашей базы данных
-    currencies = await get_currencies_from_database(db)
+    # 1. Получаем подписки пользователя СРАЗУ С ВАЛЮТАМИ (один запрос)
+    result = await db.execute(
+        select(Subscription)
+        .options(joinedload(Subscription.currency))  # Подгружаем связанную валюту
+        .where(Subscription.user_id == user_id)
+    )
+    subscriptions = result.scalars().unique().all()
 
-    # Отправляем данные
+    # 2. Передаём в шаблон
     return templates.TemplateResponse(
         request,
         "userinfo.html",
-        {"user": user, "currencies": currencies})
+        {"user": user, "subscriptions": subscriptions})
 
 
 # POST запросы
@@ -239,6 +245,9 @@ def run_migrations():
 
     # command.downgrade(alembic_cfg, "base") # Удаляет все таблицы
     command.upgrade(alembic_cfg, "head")  # Создаёт/обновляет все таблицы
+
+    # Для создания новой миграции БД
+    # alembic revision --autogenerate -m "new migration"
 
 
 if __name__ == "__main__":

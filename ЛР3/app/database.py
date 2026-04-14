@@ -75,7 +75,7 @@ async def get_users_from_database(db: AsyncSession):
 async def get_user_from_database(user_id: int, db: AsyncSession):
     """Возвращает информацию о пользователе по его id"""
 
-    user = db.get(UserBase, user_id)
+    user = await db.get(UserBase, user_id)
     return user
 
 

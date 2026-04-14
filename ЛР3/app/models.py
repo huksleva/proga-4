@@ -1,11 +1,10 @@
-from datetime import datetime
 from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
-    mapped_column
+    mapped_column,
+    relationship
 )
 from sqlalchemy import (
-    DateTime,
     String,
     ForeignKey,
     PrimaryKeyConstraint
@@ -26,6 +25,11 @@ class UserBase(Base):
     email: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     created_at: Mapped[str] = mapped_column(String(50), nullable=False)
 
+    subscriptions: Mapped[list["Subscription"]] = relationship(
+        "Subscription",
+        back_populates="user"
+    )
+
 
 class Currency(Base):
     __tablename__ = "currency"
@@ -33,9 +37,14 @@ class Currency(Base):
     code: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
 
+    subscriptions: Mapped[list["Subscription"]] = relationship(
+        "Subscription",
+        back_populates="currency"
+    )
+
 
 class Subscription(Base):
-    __tablename__ = "Subscription"
+    __tablename__ = "subscription"
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), primary_key=True)
     currency_id: Mapped[int] = mapped_column(ForeignKey("currency.id"), primary_key=True)
 
@@ -43,6 +52,9 @@ class Subscription(Base):
     __table_args__ = (
         PrimaryKeyConstraint('user_id', 'currency_id'),
     )
+
+    currency: Mapped["Currency"] = relationship("Currency", back_populates="subscriptions")
+    user: Mapped["UserBase"] = relationship("UserBase", back_populates="subscriptions")
 
 
 
