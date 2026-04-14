@@ -178,7 +178,7 @@ async def delete_subscription(currency_id: int = Form(...),
                               user_id: int = Form(...),
                               db: AsyncSession = Depends(get_db)):
     # 1. Вызываем чистую БД-функцию
-    result = await delete_subscription_from_database(user_id, currency_id, db)
+    result = await delete_subscription_from_database(currency_id, user_id, db)
 
     # 2. Если вернул None -> подписки нет -> 404
     if result is None:
@@ -216,7 +216,7 @@ async def custom_404(request: Request, exc: HTTPException):
     if "application/json" in accept_header or request.url.path.startswith("/api"):
         return JSONResponse(
             status_code=404,
-            content={"detail": "Ресурс не найден"}
+            content={"detail": exc.detail}
         )
 
     # Иначе -> возвращаем HTML-страницу
