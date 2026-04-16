@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, flash
-from ser import S3Service
+from ..services.s3_service import S3Service
 import os
 from werkzeug.utils import secure_filename
 from io import BytesIO
