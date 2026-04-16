@@ -7,7 +7,6 @@ from io import BytesIO
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 s3_service = S3Service()
 
