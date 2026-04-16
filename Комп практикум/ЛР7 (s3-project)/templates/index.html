@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S3 File Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .upload-form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input[type="file"] {
+            flex: 1;
+            padding: 10px;
+            border: 2px dashed #667eea;
+            border-radius: 5px;
+            background: white;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-info {
+            background: #3498db;
+        }
+
+        .btn-info:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .files-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .files-table th,
+        .files-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .files-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .files-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .actions button {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+
+        .flash {
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .flash.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .flash.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 600px;
+            word-break: break-all;
+        }
+
+        .close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📁 S3 File Manager</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="upload-section">
+            <h3>Загрузить файл</h3>
+            <form class="upload-form" action="/upload" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" required>
+                <button type="submit" class="btn-success">Загрузить</button>
+            </form>
+        </div>
+
+        <h3>Файлы в хранилище</h3>
+
+        {% if files %}
+            <table class="files-table">
+                <thead>
+                    <tr>
+                        <th>Имя файла</th>
+                        <th>Размер</th>
+                        <th>Дата изменения</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in files %}
+                    <tr>
+                        <td>{{ file.key }}</td>
+                        <td>{{ (file.size / 1024)|round(2) }} KB</td>
+                        <td>{{ file.last_modified.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        <td class="actions">
+                            <button onclick="getPresignedUrl('{{ file.key }}')" class="btn-info">
+                                🔗 Ссылка
+                            </button>
+                            <a href="/download/{{ file.key }}" target="_blank">
+                                <button class="btn-success">⬇️ Скачать</button>
+                            </a>
+                            <a href="/view/{{ file.key }}" target="_blank">
+                                <button class="btn-info">👁️ Просмотр</button>
+                            </a>
+                            <form action="/delete/{{ file.key }}" method="post" style="display:inline;"
+                                  onsubmit="return confirm('Удалить файл {{ file.key }}?')">
+                                <button type="submit" class="btn-danger">🗑️ Удалить</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="empty-state">
+                <p>📭 Файлов пока нет. Загрузите первый файл!</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Modal для presigned URL -->
+    <div id="urlModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>Presigned URL</h3>
+            <p id="urlText"></p>
+            <button onclick="copyUrl()" class="btn-success">📋 Копировать</button>
+        </div>
+    </div>
+
+    <script>
+        let currentUrl = '';
+
+        function getPresignedUrl(filename) {
+            fetch(`/presigned/${encodeURIComponent(filename)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        currentUrl = data.url;
+                        document.getElementById('urlText').textContent = data.url;
+                        document.getElementById('urlModal').style.display = 'block';
+                    } else {
+                        alert('Ошибка: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('Ошибка при получении URL: ' + error);
+                });
+        }
+
+        function closeModal() {
+            document.getElementById('urlModal').style.display = 'none';
+        }
+
+        function copyUrl() {
+            navigator.clipboard.writeText(currentUrl).then(() => {
+                alert('URL скопирован в буфер обмена!');
+            }).catch(err => {
+                alert('Ошибка при копировании: ' + err);
+            });
+        }
+
+        // Закрытие модалки при клике вне её
+        window.onclick = function(event) {
+            const modal = document.getElementById('urlModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+
+    <!-- Подключаем JS -->
+    <script src="{{ url_for('static', path='js/subscriptions.js') }}"></script>
+</body>
+</html>
