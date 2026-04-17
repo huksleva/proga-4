@@ -1,5 +1,10 @@
-
 let currentUrl = '';
+let urlModal = null;
+
+// Инициализация модального окна Bootstrap
+document.addEventListener('DOMContentLoaded', function () {
+    urlModal = new bootstrap.Modal(document.getElementById('urlModal'));
+});
 
 function getPresignedUrl(filename) {
     fetch(`/presigned/${encodeURIComponent(filename)}`)
@@ -7,8 +12,8 @@ function getPresignedUrl(filename) {
         .then(data => {
             if (data.success) {
                 currentUrl = data.url;
-                document.getElementById('urlText').textContent = data.url;
-                document.getElementById('urlModal').style.display = 'block';
+                document.getElementById('urlText').value = data.url;
+                urlModal.show();
             } else {
                 alert('Ошибка: ' + data.error);
             }
@@ -19,21 +24,26 @@ function getPresignedUrl(filename) {
 }
 
 function closeModal() {
-    document.getElementById('urlModal').style.display = 'none';
+    urlModal.hide();
 }
 
 function copyUrl() {
+    const urlInput = document.getElementById('urlText');
+    urlInput.select();
+    urlInput.setSelectionRange(0, 99999); // Для мобильных устройств
     navigator.clipboard.writeText(currentUrl).then(() => {
-        alert('URL скопирован в буфер обмена!');
+        // Показываем визуальное подтверждение
+        const btn = event.target.closest('button');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check me-1"></i>Скопировано!';
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-success');
+        setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-primary');
+        }, 2000);
     }).catch(err => {
         alert('Ошибка при копировании: ' + err);
     });
-}
-
-// Закрытие модалки при клике вне её
-window.onclick = function (event) {
-    const modal = document.getElementById('urlModal');
-    if (event.target === modal) {
-        modal.style.display = 'none';
-    }
 }

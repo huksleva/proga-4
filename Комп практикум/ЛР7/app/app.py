@@ -1,12 +1,27 @@
+import sys
+from pathlib import Path
+# Находим корень вашего проекта (папку ЛР7)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+# Вставляем его в САМОЕ НАЧАЛО списка поиска
+sys.path.insert(0, str(PROJECT_ROOT))
+
+# Импорт модулей
 from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, flash
 import os
 from werkzeug.utils import secure_filename
 from io import BytesIO
 from services.s3_service import S3Service
 
+# Команда для запуска minio.exe
+# $env:MINIO_ROOT_USER = "labuser"
+# $env:MINIO_ROOT_PASSWORD = "LabPass123!"
 # .\minio.exe server data --console-address ":9001"
 
-app = Flask(__name__)
+
+# Указываем, где лежат шаблоны (относительно корня проекта)
+template_dir = Path(__file__).resolve().parent.parent / "templates"
+
+app = Flask(__name__, template_folder=str(template_dir))
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
