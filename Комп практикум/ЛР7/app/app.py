@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, flash
-from ..services.s3_service import S3Service
 import os
 from werkzeug.utils import secure_filename
 from io import BytesIO
+from services.s3_service import S3Service
+
+# .\minio.exe server data --console-address ":9001"
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key')

@@ -4,6 +4,8 @@
 ### My Files ###
 Комп практикум/ЛР4/uploads/
 Комп практикум/ЛР6/budget_planner_project/emsdk/
+Комп практикум/ЛР7/lol.mp3
+Комп практикум/ЛР7/minio.exe
 
 ### Obsidian ###
 # config dir
@@ -302,7 +304,6 @@ pyrightconfig.json
 ### Node ###
 # Logs
 logs
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -375,14 +376,12 @@ web_modules/
 .yarn-integrity
 
 # dotenv environment variable files
-.env
 .env.development.local
 .env.test.local
 .env.production.local
 .env.local
 
 # parcel-bundler cache (https://parceljs.org/)
-.cache
 .parcel-cache
 
 # Next.js build output

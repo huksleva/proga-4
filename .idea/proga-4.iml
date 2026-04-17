@@ -4,6 +4,8 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/Комп практикум/ЛР7 (s3-project)" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/ЛР3" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Комп практикум/ЛР7" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Комп практикум/ЛР7/venv/Lib/site-packages" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.obsidian" />
       <excludeFolder url="file://$MODULE_DIR$/venv" />
       <excludeFolder url="file://$MODULE_DIR$/Комп практикум/ЛР4/.obsidian" />
