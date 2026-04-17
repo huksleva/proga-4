@@ -2,11 +2,11 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,pycharm,obsidian
 
 ### My Files ###
-Комп практикум/ЛР4/uploads/
-Комп практикум/ЛР6/budget_planner_project/emsdk/
-Комп практикум/ЛР7/lol.mp3
-Комп практикум/ЛР7/minio.exe
-Комп практикум/ЛР7/data/
+/Комп практикум/ЛР4/uploads/
+/Комп практикум/ЛР6/budget_planner_project/emsdk/
+/Комп практикум/ЛР7/lol.mp3
+/Комп практикум/ЛР7/minio.exe
+/Комп практикум/ЛР7/data/
 
 ### Obsidian ###
 # config dir
