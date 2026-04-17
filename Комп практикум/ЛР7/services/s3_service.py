@@ -13,7 +13,7 @@ class S3Service:
         self.endpoint_url = os.getenv('AWS_ENDPOINT_URL', 'http://localhost:9000')
         self.access_key = os.getenv('AWS_ACCESS_KEY_ID')
         self.secret_key = os.getenv('AWS_SECRET_ACCESS_KEY')
-        self.region = os.getenv('AWS_REGION', 'us-east-1')
+        self.region = os.getenv('AWS_REGION', 'ru-central1')
         self.bucket_name = os.getenv('BUCKET_NAME', 'my-bucket')
 
         self.s3_client = boto3.client(
@@ -22,7 +22,10 @@ class S3Service:
             aws_access_key_id=self.access_key,
             aws_secret_access_key=self.secret_key,
             region_name=self.region,
-            config=Config(signature_version='s3v4')
+            config=Config(
+                signature_version='s3v4',
+                s3={'addressing_style': 'path'}
+            )
         )
 
     def ensure_bucket_exists(self):

@@ -150,7 +150,7 @@ def api_list_files():
 
 
 if __name__ == '__main__':
-    print("🚀 Запуск S3 File Manager...")
+    print("Запуск S3 File Manager...")
     app.run(debug=True, host='0.0.0.0', port=5000)
 
 
