@@ -6,6 +6,12 @@
     <title>S3 File Manager</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        .filename-name { color: #212529; }
+        .filename-ext { color: #6c757d; font-weight: normal; }
+        .table td { vertical-align: middle; }
+        .btn-group .btn { padding: 0.25rem 0.5rem; }
+    </style>
 </head>
 <body class="bg-light">
     <!-- Navbar -->
@@ -61,10 +67,10 @@
                         <table class="table table-hover table-striped mb-0">
                             <thead class="table-dark">
                                 <tr>
-                                    <th scope="col" style="width: 40%">Имя файла</th>
-                                    <th scope="col" style="width: 15%">Размер</th>
-                                    <th scope="col" style="width: 25%">Дата изменения</th>
-                                    <th scope="col" style="width: 20%">Действия</th>
+                                    <th style="width: 40%">Имя файла</th>
+                                    <th style="width: 15%">Размер</th>
+                                    <th style="width: 25%">Дата</th>
+                                    <th style="width: 20%">Действия</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -72,7 +78,12 @@
                                 <tr>
                                     <td>
                                         <i class="bi bi-file-earmark text-primary me-2"></i>
-                                        <strong>{{ file.key }}</strong>
+                                        {% set parts = file.key.rsplit('.', 1) %}
+                                        {% if parts|length == 2 %}
+                                            <strong class="filename-name">{{ parts[0] }}</strong><span class="filename-ext">.{{ parts[1] }}</span>
+                                        {% else %}
+                                            <strong>{{ file.key }}</strong>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         <span class="badge bg-secondary">
@@ -88,16 +99,20 @@
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm" role="group">
-                                            <button type="button" class="btn btn-outline-primary" onclick="getPresignedUrl('{{ file.key }}')" title="Получить ссылку">
+                                            <button type="button" class="btn btn-outline-primary"
+                                                    onclick="getPresignedUrl('{{ file.key|replace("'", "\\'") }}')"
+                                                    title="Получить ссылку">
                                                 <i class="bi bi-link-45deg"></i>
                                             </button>
-                                            <a href="/download/{{ file.key }}" target="_blank" class="btn btn-outline-success" title="Скачать">
+                                            <a href="/download/{{ file.key|urlencode }}" target="_blank"
+                                               class="btn btn-outline-success" title="Скачать">
                                                 <i class="bi bi-download"></i>
                                             </a>
-                                            <a href="/view/{{ file.key }}" target="_blank" class="btn btn-outline-info" title="Просмотр">
+                                            <a href="/view/{{ file.key|urlencode }}" target="_blank"
+                                               class="btn btn-outline-info" title="Просмотр">
                                                 <i class="bi bi-eye"></i>
                                             </a>
-                                            <form action="/delete/{{ file.key }}" method="post" style="display:inline;"
+                                            <form action="/delete/{{ file.key|urlencode }}" method="post" style="display:inline;"
                                                   onsubmit="return confirm('Удалить файл {{ file.key }}?')">
                                                 <button type="submit" class="btn btn-outline-danger" title="Удалить">
                                                     <i class="bi bi-trash"></i>
@@ -128,17 +143,17 @@
                     <h5 class="modal-title">
                         <i class="bi bi-link-45deg me-2"></i>Presigned URL
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="closeModal()"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="input-group">
-                        <input type="text" class="form-control" id="urlText" readonly>
+                        <input type="text" class="form-control" id="urlText" readonly placeholder="Ссылка появится здесь...">
                         <button class="btn btn-primary" type="button" onclick="copyUrl()">
                             <i class="bi bi-clipboard me-1"></i>Копировать
                         </button>
                     </div>
                     <small class="text-muted mt-2 d-block">
-                        <i class="bi bi-info-circle me-1"></i>Ссылка действительна в течение 1 часа
+                        <i class="bi bi-info-circle me-1"></i>Ссылка действительна 1 час
                     </small>
                 </div>
             </div>
@@ -147,7 +162,70 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Подключаем JS -->
-    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+
+    <!-- Custom JS (встроенный, чтобы не зависеть от static/) -->
+    <script>
+        let currentUrl = '';
+        let urlModal = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalEl = document.getElementById('urlModal');
+            if (modalEl) {
+                urlModal = new bootstrap.Modal(modalEl);
+            }
+            console.log('JS loaded, modal initialized');
+        });
+
+        function getPresignedUrl(filename) {
+            console.log('Requesting URL for:', filename);
+
+            fetch(`/presigned/${encodeURIComponent(filename)}`)
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Data received:', data);
+                    if (data.success) {
+                        currentUrl = data.url;
+                        const input = document.getElementById('urlText');
+                        if (input) {
+                            input.value = data.url;
+                            urlModal?.show();
+                        }
+                    } else {
+                        alert('Ошибка: ' + (data.error || 'Неизвестная ошибка'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    alert('Ошибка сети: ' + error.message + '\n\nПроверьте консоль (F12)');
+                });
+        }
+
+        function copyUrl() {
+            const input = document.getElementById('urlText');
+            if (!input || !currentUrl) return;
+
+            input.select();
+            input.setSelectionRange(0, 99999);
+
+            navigator.clipboard.writeText(currentUrl).then(() => {
+                const btn = event.currentTarget;
+                const original = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-check"></i> Скопировано!';
+                btn.disabled = true;
+                setTimeout(() => {
+                    btn.innerHTML = original;
+                    btn.disabled = false;
+                }, 2000);
+            }).catch(() => {
+                // Fallback
+                document.execCommand('copy');
+                alert('URL скопирован!');
+            });
+        }
+    </script>
 </body>
 </html>

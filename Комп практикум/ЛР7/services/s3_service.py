@@ -3,6 +3,7 @@ from botocore.client import Config
 from botocore.exceptions import ClientError
 import os
 from dotenv import load_dotenv
+import mimetypes
 
 load_dotenv()
 
@@ -51,12 +52,13 @@ class S3Service:
             return []
 
     def upload_file(self, file_object, filename):
-        """Загрузить файл в бакет"""
+        content_type, _ = mimetypes.guess_type(filename)
         try:
             self.s3_client.upload_fileobj(
                 file_object,
                 self.bucket_name,
-                filename
+                filename,
+                ExtraArgs={'ContentType': content_type or 'application/octet-stream'}
             )
             return True, f"Файл {filename} успешно загружен"
         except ClientError as e:
