@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ЛР №12 — Yandex Serverless Applications</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        h1 { color: #ffcc00; }
+        .step { margin: 1rem 0; padding: 1rem; border-left: 3px solid #ffcc00; }
+    </style>
+</head>
+<body>
+    <h1>Лабораторная работа №12</h1>
+    <h2>Облачные приложения — Yandex Serverless Applications</h2>
+    
+    <div class="step">
+        <h3>✅ Шаг 1: Установка инструментов</h3>
+        <p>Установлен SourceCraft Code Assistant в VSCode, настроены MCP-серверы Toolkit и Containers.</p>
+    </div>
+    
+    <div class="step">
+        <h3>✅ Шаг 2: Разработка приложения</h3>
+        <p>Создано Flask-приложение с маршрутами /login и /, интегрирована библиотека Pillow.</p>
+    </div>
+    
+    <div class="step">
+        <h3>✅ Шаг 3: Контейнеризация</h3>
+        <p>Подготовлен Dockerfile для сборки образа приложения.</p>
+    </div>
+    
+    <div class="step">
+        <h3>✅ Шаг 4: Деплой в Yandex Cloud</h3>
+        <p>Приложение развёрнуто в Serverless Containers и доступно по публичному URL.</p>
+    </div>
+    
+    <p><strong>Автор:</strong> <span id="author">[ваш_логин_в_moodle]</span></p>
+    
+    <script>
+        // Динамическая подстановка автора из API
+        fetch('/login')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('author').textContent = data.author;
+            });
+    </script>
+</body>
+</html>
