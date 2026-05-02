@@ -3,46 +3,299 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ЛР №12 — Yandex Serverless Applications</title>
+    <title>ЛР №12 — Flask + Pillow</title>
     <style>
-        body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
-        h1 { color: #ffcc00; }
-        .step { margin: 1rem 0; padding: 1rem; border-left: 3px solid #ffcc00; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, #ffcc00, #ff6b6b, #4ecdc4);
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.8rem;
+            text-align: center;
+        }
+        h2 {
+            color: #3498db;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 400;
+            border-bottom: 2px dashed #eee;
+            padding-bottom: 15px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+        .step {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 6px solid #3498db;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .step:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        }
+        .step h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .step h3::before {
+            content: '✓';
+            background: #2ecc71;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .step p {
+            color: #555;
+            margin-bottom: 10px;
+        }
+        .step ul {
+            padding-left: 20px;
+            margin-top: 10px;
+        }
+        .step li {
+            margin-bottom: 5px;
+        }
+        .demo-section {
+            background: #e8f4fc;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 40px 0;
+            border: 2px dashed #3498db;
+            text-align: center;
+        }
+        .demo-section h3 {
+            color: #2980b9;
+            margin-bottom: 20px;
+        }
+        button {
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.5);
+        }
+        #imageResult {
+            margin-top: 20px;
+            display: none;
+        }
+        #generatedImage {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .author-info {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #7f8c8d;
+        }
+        .author-info strong {
+            color: #2c3e50;
+        }
+        #author {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #95a5a6;
+            font-size: 0.9rem;
+        }
+        .tech-badges {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        .badge {
+            background: #2c3e50;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        .badge.flask { background: #000; }
+        .badge.pillow { background: #4ecdc4; }
+        .badge.docker { background: #2496ed; }
+        .badge.gunicorn { background: #499847; }
     </style>
 </head>
 <body>
-    <h1>Лабораторная работа №12</h1>
-    <h2>Облачные приложения — Yandex Serverless Applications</h2>
-    
-    <div class="step">
-        <h3>✅ Шаг 1: Установка инструментов</h3>
-        <p>Установлен SourceCraft Code Assistant в VSCode, настроены MCP-серверы Toolkit и Containers.</p>
+    <div class="container">
+        <h1>Лабораторная работа №12</h1>
+        <h2>Веб-приложение на Flask с использованием библиотеки Pillow</h2>
+        <p class="subtitle">Разработка, контейнеризация и деплой облачного приложения</p>
+
+        <div class="tech-badges">
+            <span class="badge flask">Flask</span>
+            <span class="badge pillow">Pillow</span>
+            <span class="badge docker">Docker</span>
+            <span class="badge gunicorn">Gunicorn</span>
+        </div>
+
+        <div class="step">
+            <h3>Шаг 1: Постановка задачи</h3>
+            <p>Создать веб-приложение на Flask, которое демонстрирует работу с библиотекой Pillow для обработки изображений и может быть развёрнуто в контейнере.</p>
+            <ul>
+                <li>Реализовать маршрут <code>/login</code>, возвращающий JSON с автором.</li>
+                <li>Создать главную страницу с описанием этапов работы.</li>
+                <li>Подготовить Dockerfile для сборки образа.</li>
+                <li>Использовать gunicorn как production WSGI-сервер.</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>Шаг 2: Разработка приложения</h3>
+            <p>Написано Flask-приложение с тремя маршрутами:</p>
+            <ul>
+                <li><strong>/login (GET)</strong> – возвращает JSON <code>{"author": "ваш_логин"}</code>.</li>
+                <li><strong>/ (GET)</strong> – отдаёт HTML-страницу (этот шаблон).</li>
+                <li><strong>/api/process-image (POST)</strong> – генерирует изображение средствами Pillow и возвращает его в base64.</li>
+            </ul>
+            <p>Библиотека Pillow используется для создания изображений «на лету».</p>
+        </div>
+
+        <div class="step">
+            <h3>Шаг 3: Контейнеризация</h3>
+            <p>Создан Dockerfile на базе <code>python:3.11-slim</code>.</p>
+            <ul>
+                <li>Установлены системные зависимости для Pillow.</li>
+                <li>Скопированы <code>requirements.txt</code> и исходный код.</li>
+                <li>Запуск через gunicorn на порту 8080.</li>
+                <li>Образ можно собрать командой: <code>docker build -t flask-pillow-app .</code></li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>Шаг 4: Деплой</h3>
+            <p>Приложение готово к развёртыванию в облачной среде (Yandex Cloud, AWS, Heroku).</p>
+            <ul>
+                <li>Используется лёгкий образ Python.</li>
+                <li>Порт 8080 экспонируется наружу.</li>
+                <li>Переменная окружения <code>MOODLE_LOGIN</code> позволяет задать автора.</li>
+            </ul>
+        </div>
+
+        <div class="demo-section">
+            <h3>Демонстрация работы Pillow</h3>
+            <p>Нажмите кнопку, чтобы сгенерировать изображение с помощью библиотеки Pillow (запрос к API).</p>
+            <button onclick="generateImage()">Сгенерировать изображение</button>
+            <div id="imageResult">
+                <p>Сгенерированное изображение:</p>
+                <img id="generatedImage" src="" alt="Generated by Pillow">
+                <p><small>Изображение создано с помощью <code>PIL.Image</code> и передано в base64.</small></p>
+            </div>
+        </div>
+
+        <div class="author-info">
+            <p><strong>Автор работы:</strong> <span id="author">загрузка...</span></p>
+            <p><strong>Дата выполнения:</strong> <span id="currentDate"></span></p>
+        </div>
+
+        <footer>
+            <p>Лабораторная работа по курсу «Компьютерный практикум» • 2026</p>
+        </footer>
     </div>
-    
-    <div class="step">
-        <h3>✅ Шаг 2: Разработка приложения</h3>
-        <p>Создано Flask-приложение с маршрутами /login и /, интегрирована библиотека Pillow.</p>
-    </div>
-    
-    <div class="step">
-        <h3>✅ Шаг 3: Контейнеризация</h3>
-        <p>Подготовлен Dockerfile для сборки образа приложения.</p>
-    </div>
-    
-    <div class="step">
-        <h3>✅ Шаг 4: Деплой в Yandex Cloud</h3>
-        <p>Приложение развёрнуто в Serverless Containers и доступно по публичному URL.</p>
-    </div>
-    
-    <p><strong>Автор:</strong> <span id="author">[ваш_логин_в_moodle]</span></p>
-    
+
     <script>
-        // Динамическая подстановка автора из API
+        // Динамическая подстановка автора из API /login
         fetch('/login')
             .then(r => r.json())
             .then(data => {
                 document.getElementById('author').textContent = data.author;
             });
+
+        // Установка текущей даты
+        const now = new Date();
+        document.getElementById('currentDate').textContent = now.toLocaleDateString('ru-RU', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        // Функция генерации изображения через API
+        function generateImage() {
+            const button = document.querySelector('button');
+            const originalText = button.textContent;
+            button.textContent = 'Генерация...';
+            button.disabled = true;
+
+            fetch('/api/process-image', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                    if (data.image) {
+                        const img = document.getElementById('generatedImage');
+                        img.src = data.image;
+                        document.getElementById('imageResult').style.display = 'block';
+                    } else {
+                        alert('Ошибка: ' + (data.message || 'неизвестная ошибка'));
+                    }
+                })
+                .catch(err => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                    alert('Ошибка сети: ' + err.message);
+                });
+        }
     </script>
 </body>
 </html>
