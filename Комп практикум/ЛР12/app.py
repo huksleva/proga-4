@@ -7,7 +7,7 @@ import os
 app = Flask(__name__)
 
 # Логин можно задать через переменную окружения, иначе использовать значение по умолчанию
-AUTHOR = os.environ.get('MOODLE_LOGIN', 'leonid_ivanov')  # Замените на реальный логин
+AUTHOR = os.environ.get('MOODLE_LOGIN', '1153307')  # Замените на реальный логин
 
 @app.route('/login', methods=['GET'])
 def login():
