@@ -276,21 +276,29 @@
             const originalText = button.textContent;
             button.textContent = 'Генерация...';
             button.disabled = true;
+            console.log('Запрос к /api/process-image...');
 
             fetch('/api/process-image', { method: 'POST' })
-                .then(r => r.json())
+                .then(r => {
+                    console.log('Ответ получен, статус:', r.status);
+                    return r.json();
+                })
                 .then(data => {
+                    console.log('Данные ответа:', data);
                     button.textContent = originalText;
                     button.disabled = false;
                     if (data.image) {
                         const img = document.getElementById('generatedImage');
+                        console.log('Устанавливаем src изображения');
                         img.src = data.image;
                         document.getElementById('imageResult').style.display = 'block';
+                        console.log('imageResult display block');
                     } else {
                         alert('Ошибка: ' + (data.message || 'неизвестная ошибка'));
                     }
                 })
                 .catch(err => {
+                    console.error('Ошибка fetch:', err);
                     button.textContent = originalText;
                     button.disabled = false;
                     alert('Ошибка сети: ' + err.message);
