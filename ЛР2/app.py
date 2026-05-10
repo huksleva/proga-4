@@ -29,7 +29,7 @@ class CurrencyProvider(abc.ABC):
         Returns:
             Any: Данные в формате, определенном конкретной реализацией.
         """
-        pass
+
 
     @abc.abstractmethod
     def save_to_file(self, filename: str) -> None:
@@ -39,7 +39,7 @@ class CurrencyProvider(abc.ABC):
         Args:
             filename (str): Имя файла для сохранения.
         """
-        pass
+
 
 
 class CBRProvider(CurrencyProvider):
@@ -53,7 +53,7 @@ class CBRProvider(CurrencyProvider):
         """Инициализация провайдера."""
         self._data: Optional[Dict[str, Any]] = None
 
-    def get_data(self) -> Dict[str, Any]:
+    def get_data(self) -> dict[str, Any]:
         """
         Загружает актуальные курсы валют с API ЦБ РФ.
 
@@ -63,9 +63,12 @@ class CBRProvider(CurrencyProvider):
         Raises:
             requests.RequestException: Если запрос к API не удался.
         """
-        response = requests.get(self.URL)
-        response.raise_for_status()
-        self._data = response.json()
+        if self._data is None:
+            response = requests.get(self.URL, timeout=10)
+            response.raise_for_status()
+            self._data = response.json()
+
+        assert self._data is not None
         return self._data
 
     def save_to_file(self, filename: str) -> None:
@@ -152,7 +155,8 @@ class CsvDecorator(CurrencyDecorator):
     Извлекает только основную информацию о валютах (CharCode, Name, Value).
     """
 
-    def _flatten_data(self, data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    @staticmethod
+    def _flatten_data(data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Преобразует вложенную структуру JSON в плоский список для CSV.
 

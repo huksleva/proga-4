@@ -12,7 +12,7 @@ import os
 import json
 import csv
 
-from main import CBRProvider, YamlDecorator, CsvDecorator
+from app import CBRProvider, YamlDecorator, CsvDecorator
 
 
 class TestCBRProvider(unittest.TestCase):
