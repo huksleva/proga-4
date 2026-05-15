@@ -36,6 +36,7 @@ for page in range(1, 55):
         # Получаем данные из каждой ячейки
         FIO = cells[0].text.strip()
         profile_link = cells[0].find("a")["href"]
+        print(f"Обрабатывается страница {profile_link}")
         post = cells[1].text.strip()
         faculty = cells[2].text.strip()
         department = cells[3].text.strip()
@@ -47,13 +48,17 @@ for page in range(1, 55):
         check_status_code(profile_response.status_code)
         profile_soup = BeautifulSoup(profile_response.text, "html.parser")
 
+        # Получаем список всех h1
+        h1_list = [
+            h1.get_text(strip=True)
+            for h1 in profile_soup.find_all("h1", class_="text-m")
+        ]
+
         # Ищем email
-        h1_list_for_email = profile_soup.find_all("h1").text.strip()
-        email = find_email(h1_list_for_email)
+        email = find_email(h1_list)
 
         # Ищем телефонный номер
-        h1_list_for_num = profile_soup.find_all("h1").text.strip()
-        phone_number = find_phone_number(h1_list_for_num)
+        phone_number = find_phone_number(h1_list)
 
-        print(email, phone_number)
+        print(email, phone_number, sep="===", end="|||\n")
     

@@ -28,10 +28,12 @@ def find_phone_number(str_list: list[str]) -> str:
     """
 
     for string in str_list:
-        if string.find('+') != -1:
+        sym = string[0]
+        if sym == '+' or sym == '8':
             return string
 
     return ""
+
 
 def check_status_code(status_code: int) -> bool:
     """
@@ -45,11 +47,10 @@ def check_status_code(status_code: int) -> bool:
     """
 
     if status_code == 200:
-        print("OK")
+        # print("OK")
         return True
     else:
         print("ERROR")
         print(status_code)
         return False
-
 
