@@ -24,7 +24,7 @@ class TeachersSpider(scrapy.Spider):
         for row in rows:
             cells = row.css("td")
 
-            fio = cells[0].css("a::text").get("").strip()
+            fio = cells[0].xpath("string(.)").get("").strip()
 
             profile_link = cells[0].css(
                 "a::attr(href)"
