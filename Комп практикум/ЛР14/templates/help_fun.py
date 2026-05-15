@@ -54,3 +54,6 @@ def check_status_code(status_code: int) -> bool:
         print(status_code)
         return False
 
+
+if __name__ == '__main__':
+    pass

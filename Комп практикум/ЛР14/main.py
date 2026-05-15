@@ -1,6 +1,11 @@
 import requests
 from bs4 import BeautifulSoup
-from templates.help_fun import check_status_code, find_email, find_phone_number
+import pandas as pd
+from templates.help_fun import (
+    check_status_code,
+    find_email,
+    find_phone_number
+)
 
 # Добавляем User-Agent
 # Некоторые сайты блокируют запросы без заголовков.
@@ -8,10 +13,13 @@ headers = {
     "User-Agent": "Mozilla/5.0"
 }
 
+# Список для хранения данных
+result = []
+
 # Начинаем
 for page in range(1, 55):
     url = "https://atlas.herzen.spb.ru/teachers?page=" + str(page)
-    print(f"Обрабатывается страница {url}")
+    print(f"\nОбрабатывается страница №{page}: {url}")
 
     # 1. Получаем HTML
     response = requests.get(url, headers=headers)
@@ -36,12 +44,11 @@ for page in range(1, 55):
         # Получаем данные из каждой ячейки
         FIO = cells[0].text.strip()
         profile_link = cells[0].find("a")["href"]
-        print(f"Обрабатывается страница {profile_link}")
+        print(f"    Обрабатывается страница профиля: {profile_link}")
         post = cells[1].text.strip()
         faculty = cells[2].text.strip()
         department = cells[3].text.strip()
         academic_degree = cells[4].text.strip()
-
 
         # Со страницы профиля получаем: почту и телефон (при наличии)
         profile_response = requests.get(str(profile_link), headers=headers)
@@ -60,5 +67,27 @@ for page in range(1, 55):
         # Ищем телефонный номер
         phone_number = find_phone_number(h1_list)
 
-        print(email, phone_number, sep="===", end="|||\n")
-    
+        # Создаём результирующий список
+        result.append({
+            "ФИО": FIO,
+            "Ссылка_на_профиль": profile_link,
+            "Должность": post,
+            "Факультет/институт": faculty,
+            "Кафедра": department,
+            "Учёная_степень": academic_degree,
+            "Почта": email,
+            "Номер_телефона": phone_number
+        })
+
+print("СОЗДАНИЕ CSV")
+
+# Создаём DataFrame
+df = pd.DataFrame(result)
+
+# Создаём csv
+df.to_csv(
+    "./db/csv/teachers.csv",
+    index=False,
+    encoding="utf-8-sig"
+)
+print("ФАЙЛ CSV СОЗДАН")
