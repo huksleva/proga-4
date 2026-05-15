@@ -5,6 +5,9 @@
       <sourceFolder url="file://$MODULE_DIR$/ЛР14" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/ЛР10/.venv" />
       <excludeFolder url="file://$MODULE_DIR$/ЛР14/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/ЛР4/.obsidian" />
+      <excludeFolder url="file://$MODULE_DIR$/ЛР4/uploads" />
+      <excludeFolder url="file://$MODULE_DIR$/ЛР7/venv" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.13 (Комп практикум)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

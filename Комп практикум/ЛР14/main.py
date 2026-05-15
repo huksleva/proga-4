@@ -17,9 +17,9 @@ headers = {
 result = []
 
 # Начинаем
-for page in range(1, 55):
+for page in range(1, 2):
     url = "https://atlas.herzen.spb.ru/teachers?page=" + str(page)
-    print(f"\nОбрабатывается страница №{page}: {url}")
+    print(f"Обрабатывается страница №{page}: {url}")
 
     # 1. Получаем HTML
     response = requests.get(url, headers=headers)
@@ -78,6 +78,7 @@ for page in range(1, 55):
             "Почта": email,
             "Номер_телефона": phone_number
         })
+    print()
 
 print("СОЗДАНИЕ CSV")
 
