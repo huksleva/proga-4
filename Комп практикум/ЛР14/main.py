@@ -17,7 +17,7 @@ headers = {
 result = []
 
 # Начинаем
-for page in range(1, 2):
+for page in range(1, 55):
     url = "https://atlas.herzen.spb.ru/teachers?page=" + str(page)
     print(f"Обрабатывается страница №{page}: {url}")
 
