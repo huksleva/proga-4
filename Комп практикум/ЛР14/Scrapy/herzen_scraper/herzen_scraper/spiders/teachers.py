@@ -24,7 +24,7 @@ class TeachersSpider(scrapy.Spider):
         for row in rows:
             cells = row.css("td")
 
-            fio = cells[0].css("::text").get("").strip()
+            fio = cells[0].css("a::text").get("").strip()
 
             profile_link = cells[0].css(
                 "a::attr(href)"
@@ -57,7 +57,8 @@ class TeachersSpider(scrapy.Spider):
     # Получаем профиль
     # ==========================================
 
-    def parse_profile(self, response):
+    @staticmethod
+    def parse_profile(response):
 
         h1_list = response.css(
             "h1.text-m::text"
